@@ -37,17 +37,17 @@ void* WINAPI CreateApi(){return CThostFtdcMdApi::CreateFtdcMdApi("./log/");}
 
 void* WINAPI CreateSpi(){return new Quote();}
 
-		void* WINAPI RegisterNameServer(CThostFtdcMdApi *api ,char *pszNsAddress){api->RegisterNameServer(pszNsAddress); return 0;}
+		void* WINAPI Join(CThostFtdcMdApi *api ){api->Join(); return 0;}
 void* WINAPI UnSubscribeForQuoteRsp(CThostFtdcMdApi *api ,char *ppInstrumentID[], int nCount){api->UnSubscribeForQuoteRsp(ppInstrumentID,nCount); return 0;}
-void* WINAPI ReqUserLogout(CThostFtdcMdApi *api ,CThostFtdcUserLogoutField *pUserLogout, int nRequestID){api->ReqUserLogout(pUserLogout,nRequestID); return 0;}
-void* WINAPI Init(CThostFtdcMdApi *api ){api->Init(); return 0;}
-void* WINAPI GetTradingDay(CThostFtdcMdApi *api ){api->GetTradingDay(); return 0;}
-void* WINAPI RegisterSpi(CThostFtdcMdApi *api ,CThostFtdcMdSpi *pSpi){api->RegisterSpi(pSpi); return 0;}
-void* WINAPI SubscribeMarketData(CThostFtdcMdApi *api ,char *ppInstrumentID[], int nCount){api->SubscribeMarketData(ppInstrumentID,nCount); return 0;}
-void* WINAPI Release(CThostFtdcMdApi *api ){api->Release(); return 0;}
-void* WINAPI Join(CThostFtdcMdApi *api ){api->Join(); return 0;}
-void* WINAPI RegisterFensUserInfo(CThostFtdcMdApi *api ,CThostFtdcFensUserInfoField * pFensUserInfo){api->RegisterFensUserInfo(pFensUserInfo); return 0;}
-void* WINAPI RegisterFront(CThostFtdcMdApi *api ,char *pszFrontAddress){api->RegisterFront(pszFrontAddress); return 0;}
-void* WINAPI ReqUserLogin(CThostFtdcMdApi *api ,CThostFtdcReqUserLoginField *pReqUserLoginField, int nRequestID){api->ReqUserLogin(pReqUserLoginField,nRequestID); return 0;}
 void* WINAPI UnSubscribeMarketData(CThostFtdcMdApi *api ,char *ppInstrumentID[], int nCount){api->UnSubscribeMarketData(ppInstrumentID,nCount); return 0;}
+void* WINAPI RegisterFront(CThostFtdcMdApi *api ,char *pszFrontAddress){api->RegisterFront(pszFrontAddress); return 0;}
+void* WINAPI Release(CThostFtdcMdApi *api ){api->Release(); return 0;}
+void* WINAPI SubscribeMarketData(CThostFtdcMdApi *api ,char *ppInstrumentID[], int nCount){api->SubscribeMarketData(ppInstrumentID,nCount); return 0;}
+void* WINAPI Init(CThostFtdcMdApi *api ){api->Init(); return 0;}
+void* WINAPI RegisterFensUserInfo(CThostFtdcMdApi *api ,CThostFtdcFensUserInfoField * pFensUserInfo){api->RegisterFensUserInfo(pFensUserInfo); return 0;}
+void* WINAPI RegisterSpi(CThostFtdcMdApi *api ,CThostFtdcMdSpi *pSpi){api->RegisterSpi(pSpi); return 0;}
+void* WINAPI ReqUserLogout(CThostFtdcMdApi *api ,CThostFtdcUserLogoutField *pUserLogout, int nRequestID){api->ReqUserLogout(pUserLogout,nRequestID); return 0;}
+void* WINAPI ReqUserLogin(CThostFtdcMdApi *api ,CThostFtdcReqUserLoginField *pReqUserLoginField, int nRequestID){api->ReqUserLogin(pReqUserLoginField,nRequestID); return 0;}
+void* WINAPI RegisterNameServer(CThostFtdcMdApi *api ,char *pszNsAddress){api->RegisterNameServer(pszNsAddress); return 0;}
+void* WINAPI GetTradingDay(CThostFtdcMdApi *api ){api->GetTradingDay(); return 0;}
 void* WINAPI SubscribeForQuoteRsp(CThostFtdcMdApi *api ,char *ppInstrumentID[], int nCount){api->SubscribeForQuoteRsp(ppInstrumentID,nCount); return 0;}

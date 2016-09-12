@@ -13,10 +13,10 @@ class Generate:
 
 	def __init__(self):
 		self.cbNames = []
-		self.cbArgss = {}
+		self.cbArgs_dict = {}
 
-		self.fcNames = []
-		self.fcArgss = {}
+		self.fcName_dict = []
+		self.fcArgs_dict = {}
 
 
 		self.ApiName = 'CThostFtdcMdApi'
@@ -47,7 +47,7 @@ class Generate:
 			cbArgs = cbArgs.replace(') ', '')
 		else:
 			cbArgs = cbArgs.replace(')', '')
-		self.cbArgss[cbName] = cbArgs
+		self.cbArgs_dict[cbName] = cbArgs
 
 
 	def processFunction(self, line):
@@ -57,12 +57,12 @@ class Generate:
 		content = line.split('(')
 		fcName = content[0].split(' ')[-1].replace('*', '')  # 回调函数名称
 
-		self.fcNames.append(fcName)
+		self.fcName_dict.append(fcName)
 
 		fcArgs = content[1]  # 回调函数参数
 		fcArgs = fcArgs.replace(')', '')
 
-		self.fcArgss[fcName] = fcArgs
+		self.fcArgs_dict[fcName] = fcArgs
 
 	def WriteH(self):
 
@@ -100,8 +100,8 @@ public:
 		vars = ''
 		typedef = ''
 		virtual = ''
-		for cbName in self.cbArgss:
-			cbArgs = self.cbArgss[cbName]
+		for cbName in self.cbArgs_dict:
+			cbArgs = self.cbArgs_dict[cbName]
 			cbArgsList = cbArgs.split(', ')  # 将每个参数转化为列表
 
 			cbArgsTypeList = []
@@ -199,8 +199,8 @@ void* WINAPI CreateSpi(){return new Quote();}
 		""")
 
 
-		for fcName in self.fcArgss:
-			fcArgs = self.fcArgss[fcName]
+		for fcName in self.fcArgs_dict:
+			fcArgs = self.fcArgs_dict[fcName]
 			fcArgsList = fcArgs.split(', ')  # 将每个参数转化为列表
 
 			fcArgsTypeList = []
@@ -228,7 +228,7 @@ void* WINAPI CreateSpi(){return new Quote();}
 		self.fquote_d.write('\tCreateApi\n')
 		self.fquote_d.write('\tCreateSpi\n')
 
-		for fcName in self.fcNames:
+		for fcName in self.fcName_dict:
 			self.fquote_d.write('\t{0}\n'.format(fcName))
 
 		for cb in self.cbNames:
@@ -236,6 +236,19 @@ void* WINAPI CreateSpi(){return new Quote();}
 
 
 	def WritePyQuote(self):
+		#structs and fields
+		fstruct = open('..\py_ctp\ctp_struct.py', 'r', encoding='utf-8')
+		struct_dict = {}
+		struct_init_dict = {}
+		struct = ''
+		m = __import__('py_ctp.ctp_struct')
+		for line in fstruct.readlines():
+			if line.find('Structure') >= 0:
+				key = line.split(' ')[1].split('(')[0]
+				c = getattr(getattr(m, 'ctp_struct'), key)
+				o = c()
+				struct_dict[key] = o._fields_
+
 
 		self.fquote_py.write(
 		"""
@@ -263,6 +276,7 @@ class Quote:
 
 		self.api = None
 		self.spi = None
+		self.nRequestID = 0
 """)
 		funcs = []
 		funcs.append("""
@@ -276,8 +290,8 @@ class Quote:
 
 		type_dict = {'int': 'c_int32', 'char': 'c_char_p', 'double': 'c_double', 'short': 'c_int32', 'string': 'c_char_p', 'bool': 'c_bool'}
 
-		for fcName in self.fcArgss:
-			fcArgs = self.fcArgss[fcName]
+		for fcName in self.fcArgs_dict:
+			fcArgs = self.fcArgs_dict[fcName]
 			fcArgsList = fcArgs.split(', ')  # 将每个参数转化为列表
 
 			fcArgsTypeList = []
@@ -288,35 +302,81 @@ class Quote:
 				if len(content) > 1:
 					fcArgsTypeList.append(content[0])  # 参数类型列表
 					fcArgsValueList.append(content[1].replace(' ', ''))  # 参数数据列表
-			params = ''
-			for t in fcArgsValueList:
-				t = t.replace('[', '').replace(']', '')
-				params += ', ' + t
+
+			#对合约订阅与要的特别处理
+			if fcName.find('Subscribe') == 0 or fcName.find('Subscribe') == 2:
+				func = '''
+	def {0}(self, pInstrumentID):
+		self.h.{0}.argtypes = [c_void_p , c_char_p*1, c_int32]
+		self.h.{0}.restype = c_void_p
+		self.h.{0}(self.api, (c_char_p*1)(bytes(pInstrumentID, encoding = 'ascii')), 1)\n'''.format(fcName)
+			else:
+				#类型声明时的argtypes用
+				types = ''
+				#def同行参数
+				params = ''
+				#调用时的参数名
+				values = ''
+				struct_init = ''
+				#for type in fcArgsTypeList:
+				for i in range(len(fcArgsTypeList)):
+					type = fcArgsTypeList[i]
+					args = fcArgsValueList[i].replace('[', '').replace(']', '')
+					if type in type_dict.keys():
+						types += ' , ' + type_dict[type]
+
+# CThostFtdcReqUserLoginField *pReqUserLoginField, int nRequestID =>,pReqUserLoginField,nRequestID
+						if type == 'char':
+							values += ', ' + "bytes({0}, encoding='ascii')".format(args)
+						else:
+							values += ', ' + args
+						params += ', ' + args
+					else: #非基础类型的参数
+						if type in struct_dict.keys():
+							struct_init = '\n\t\tstruc = {0}()\n'.format(type)
+							for field in struct_dict[type]:
+								tt = str(field[1]).split('.')[-1].split('\'')[0]
+
+								if tt.find('c_char') >= 0:
+									params += ", {0} = ''".format(field[0])
+								else:
+									params += ', {0} = 0'.format(field[0])
+								#合成structure bytes('9999', encoding='ascii')
+								struct_init += '\t\tstruc.{0} = {1}\n'.format(field[0], field[0] if tt.find('c_char') < 0 else "bytes({0}, encoding='ascii')".format(field[0]))
+							#构造struct的语句
+							struct_init_dict[fcName] = struct_init
+							values += ', byref({0})'.format('struc')
+						else:
+							values += ', {0}'.format(args)
+							params += ', ' + args
+						types += ' , c_void_p'
 
 
-			types = ''
-			for type in fcArgsTypeList:
-				if type in type_dict.keys():
-					types += ' , ' + type_dict[type]
-				else:
-					types += ' , c_void_p'
-
-			line = '''\t\tself.h.{0}.argtypes = [c_void_p{1}]
+				line = '''\t\tself.h.{0}.argtypes = [c_void_p{1}]
 		self.h.{0}.restype = c_void_p\n'''.format(fcName, types)
-			self.fquote_py.write(line)
+				self.fquote_py.write(line)
 
-			func = '''
+				#处理参数为Structure的情况:加入structu构造,去掉reqid
+				if fcName in struct_init_dict.keys():
+					func = '''
+	def {0}(self{1}):{3}
+		self.nRequestID += 1
+		self.h.{0}(self.api{2}, self.nRequestID)
+			'''.format(fcName, params.replace(', nRequestID', ''), values.replace(', nRequestID', ''), struct_init_dict[fcName])
+				else:
+					func = '''
 	def {0}(self{1}):
-		self.h.{0}(self.api{1})
-			'''.format(fcName, params)
+		self.h.{0}(self.api{2})
+			'''.format(fcName, params, values)
+
 			funcs.append(func)
 
 		cbRegs = []
 		cb__Funcs = []
 		cbFuncs = []
 		#响应函数
-		for cbName in self.cbArgss:
-			cbArgs = self.cbArgss[cbName]
+		for cbName in self.cbArgs_dict:
+			cbArgs = self.cbArgs_dict[cbName]
 			cbArgsList = cbArgs.split(', ')  # 将每个参数转化为列表
 
 			cbArgsTypeList = []
@@ -331,12 +391,18 @@ class Quote:
 
 			paramtype = ''
 			params = ''
+			params__ = ''
 			param_trans = ''
 
 			for t in cbArgsTypeList:
 				paramtype += ', ' + (type_dict[t] if t in type_dict.keys() else 'POINTER({0})'.format(t))
+				#在响应参数中加入参数的类型,方便之后的调用(可查类型)
 				param = cbArgsValueList[cbArgsTypeList.index(t)]
-				params += param if params == '' else (', ' + param)
+				params__ += ', ' + param
+				#if params == '':
+				#	params += '{0} = {1}'.format(param, t)
+				#else:
+				params += ', {0} = {1}'.format(param, t)
 #def __OnRspSubMarketData(self, pSpecificInstrument, pRspInfo, nRequestID, bIsLast):
 #self.OnRspSubMarketData(POINTER(CThostFtdcSpecificInstrumentField).from_param(pSpecificInstrument).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
 				ref = param
@@ -353,13 +419,12 @@ class Quote:
 			cbRegs.append(line)
 
 			cb__Funcs.append("""
-	def __{0}(self, {1}):
-			print('{0}:{1}')
-			self.{0}({2})
-	""".format(cbName, params, param_trans))
+	def __{0}(self{1}):
+		self.{0}({2})
+	""".format(cbName, params__, param_trans))
 
 			cbFuncs.append("""
-	def {0}(self, {1}):
+	def {0}(self{1}):
 			print('{0}:{1}')
 	""".format(cbName, params))
 
@@ -376,8 +441,8 @@ class Quote:
 		"""在createapi, createspi后调用"""
 ''')
 
-		for str in cbRegs:
-			self.fquote_py.write(str)
+		for reg in cbRegs:
+			self.fquote_py.write(reg)
 
 		#回调函数
 		for func in cb__Funcs:

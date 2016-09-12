@@ -3,6 +3,7 @@
 
 from ctypes import *
 from enum import Enum
+from py_ctp.ctp_enum import *
 class ExchangePropertyType(Enum):
 	"""交易所属性类型"""
 	Normal = 48

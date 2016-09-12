@@ -16,17 +16,21 @@ class TestQuote:
 
 	def OnFrontConnected(self):
 		print('connected')
-		f = CThostFtdcReqUserLoginField()
-		f.BrokerID = '9999'.encode('ascii')
-		f.UserID = '123'.encode('ascii')
-		f.Password = '***'.encode('ascii')
-		self.req += 1
-		self.q.ReqUserLogin(byref(f), self.req)
+		self.q.ReqUserLogin(BrokerID='9999', UserID='xxx', Password='***')
 
 	def OnRspUserLogin(self, rsp, info, req, last):
 		i = CThostFtdcRspInfoField()
 		i = info
 		print(i.getErrorMsg())
+
+		#insts = create_string_buffer(b'cu', 5)
+		self.q.SubscribeMarketData('cu1610')
+
+	def OnTick(self, tick):
+		f = CThostFtdcMarketDataField()
+		f = tick
+		print('{0}\t{1}.{2}\t{3}'.format(f.getInstrumentID(), f.getUpdateTime(), f.getUpdateMillisec(), f.getLastPrice()))
+
 
 	def Run(self):
 		#CreateApi时会用到log目录,需要在程序目录下创建**而非dll下**
@@ -36,11 +40,12 @@ class TestQuote:
 
 		self.q.OnFrontConnected = self.OnFrontConnected
 		self.q.OnRspUserLogin = self.OnRspUserLogin
+		self.q.OnRtnDepthMarketData = self.OnTick
 
 		self.q.RegCB()
 
 
-		self.q.RegisterFront('tcp://180.168.146.187:10010'.encode('ascii'))
+		self.q.RegisterFront('tcp://180.168.146.187:10010')
 		self.q.Init()
 		self.q.Join()
 

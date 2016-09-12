@@ -27,45 +27,32 @@ public:
 		else
 			return pRspInfo;
 	}
-	typedef int (WINAPI *RspSubMarketData)(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	typedef int (WINAPI *RspSubForQuoteRsp)(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-	typedef int (WINAPI *FrontDisconnected)(int nReason);
-	typedef int (WINAPI *RspUnSubMarketData)(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-	typedef int (WINAPI *RspUserLogout)(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	typedef int (WINAPI *RtnForQuoteRsp)(CThostFtdcForQuoteRspField *pForQuoteRsp);
 	typedef int (WINAPI *HeartBeatWarning)(int nTimeLapse);
+	typedef int (WINAPI *RspSubMarketData)(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	typedef int (WINAPI *RspUserLogin)(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	typedef int (WINAPI *RtnDepthMarketData)(CThostFtdcDepthMarketDataField *pDepthMarketData);
+	typedef int (WINAPI *RspUnSubForQuoteRsp)(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	typedef int (WINAPI *RspUnSubMarketData)(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	typedef int (WINAPI *FrontDisconnected)(int nReason);
+	typedef int (WINAPI *RspUserLogout)(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	typedef int (WINAPI *RspError)(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	typedef int (WINAPI *FrontConnected)();
-	typedef int (WINAPI *RtnDepthMarketData)(CThostFtdcDepthMarketDataField *pDepthMarketData);
-	typedef int (WINAPI *RspUserLogin)(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-	typedef int (WINAPI *RspUnSubForQuoteRsp)(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
-	void *_RspSubMarketData;
 	void *_RspSubForQuoteRsp;
-	void *_FrontDisconnected;
-	void *_RspUnSubMarketData;
-	void *_RspUserLogout;
 	void *_RtnForQuoteRsp;
 	void *_HeartBeatWarning;
+	void *_RspSubMarketData;
+	void *_RspUserLogin;
+	void *_RtnDepthMarketData;
+	void *_RspUnSubForQuoteRsp;
+	void *_RspUnSubMarketData;
+	void *_FrontDisconnected;
+	void *_RspUserLogout;
 	void *_RspError;
 	void *_FrontConnected;
-	void *_RtnDepthMarketData;
-	void *_RspUserLogin;
-	void *_RspUnSubForQuoteRsp;
 
-virtual void OnRspSubMarketData (CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-	if (_RspSubMarketData)
-				{
-					if (pSpecificInstrument)
-						((RspSubMarketData)_RspSubMarketData)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
-					else
-					{
-						CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
-						((RspSubMarketData)_RspSubMarketData)(&f, repare(pRspInfo), nRequestID, bIsLast);
-					}
-				}
-}
 virtual void OnRspSubForQuoteRsp (CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (_RspSubForQuoteRsp)
@@ -79,50 +66,23 @@ virtual void OnRspSubForQuoteRsp (CThostFtdcSpecificInstrumentField *pSpecificIn
 					}
 				}
 }
-virtual void OnFrontDisconnected (int nReason) {{if (_FrontDisconnected) ((FrontDisconnected)_FrontDisconnected)(nReason);}}
-virtual void OnRspUnSubMarketData (CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-	if (_RspUnSubMarketData)
-				{
-					if (pSpecificInstrument)
-						((RspUnSubMarketData)_RspUnSubMarketData)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
-					else
-					{
-						CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
-						((RspUnSubMarketData)_RspUnSubMarketData)(&f, repare(pRspInfo), nRequestID, bIsLast);
-					}
-				}
-}
-virtual void OnRspUserLogout (CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-	if (_RspUserLogout)
-				{
-					if (pUserLogout)
-						((RspUserLogout)_RspUserLogout)(pUserLogout, repare(pRspInfo), nRequestID, bIsLast);
-					else
-					{
-						CThostFtdcUserLogoutField f; memset(&f, 0, sizeof(f));
-						((RspUserLogout)_RspUserLogout)(&f, repare(pRspInfo), nRequestID, bIsLast);
-					}
-				}
-}
 virtual void OnRtnForQuoteRsp (CThostFtdcForQuoteRspField *pForQuoteRsp)
 {
 	{if (_RtnForQuoteRsp) ((RtnForQuoteRsp)_RtnForQuoteRsp)(pForQuoteRsp);}
 }
 virtual void OnHeartBeatWarning (int nTimeLapse) {{if (_HeartBeatWarning) ((HeartBeatWarning)_HeartBeatWarning)(nTimeLapse);}}
-
-			virtual void onRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-			{
-				if (_RspError)
-				{
-					((RspError)_RspError)(repare(pRspInfo), nRequestID, bIsLast);
-				}
-			}
-virtual void OnFrontConnected () {{if (_FrontConnected) ((FrontConnected)_FrontConnected)();}}
-virtual void OnRtnDepthMarketData (CThostFtdcDepthMarketDataField *pDepthMarketData)
+virtual void OnRspSubMarketData (CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	{if (_RtnDepthMarketData) ((RtnDepthMarketData)_RtnDepthMarketData)(pDepthMarketData);}
+	if (_RspSubMarketData)
+				{
+					if (pSpecificInstrument)
+						((RspSubMarketData)_RspSubMarketData)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
+					else
+					{
+						CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
+						((RspSubMarketData)_RspSubMarketData)(&f, repare(pRspInfo), nRequestID, bIsLast);
+					}
+				}
 }
 virtual void OnRspUserLogin (CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
@@ -137,6 +97,10 @@ virtual void OnRspUserLogin (CThostFtdcRspUserLoginField *pRspUserLogin, CThostF
 					}
 				}
 }
+virtual void OnRtnDepthMarketData (CThostFtdcDepthMarketDataField *pDepthMarketData)
+{
+	{if (_RtnDepthMarketData) ((RtnDepthMarketData)_RtnDepthMarketData)(pDepthMarketData);}
+}
 virtual void OnRspUnSubForQuoteRsp (CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (_RspUnSubForQuoteRsp)
@@ -150,5 +114,41 @@ virtual void OnRspUnSubForQuoteRsp (CThostFtdcSpecificInstrumentField *pSpecific
 					}
 				}
 }
+virtual void OnRspUnSubMarketData (CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (_RspUnSubMarketData)
+				{
+					if (pSpecificInstrument)
+						((RspUnSubMarketData)_RspUnSubMarketData)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
+					else
+					{
+						CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
+						((RspUnSubMarketData)_RspUnSubMarketData)(&f, repare(pRspInfo), nRequestID, bIsLast);
+					}
+				}
+}
+virtual void OnFrontDisconnected (int nReason) {{if (_FrontDisconnected) ((FrontDisconnected)_FrontDisconnected)(nReason);}}
+virtual void OnRspUserLogout (CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (_RspUserLogout)
+				{
+					if (pUserLogout)
+						((RspUserLogout)_RspUserLogout)(pUserLogout, repare(pRspInfo), nRequestID, bIsLast);
+					else
+					{
+						CThostFtdcUserLogoutField f; memset(&f, 0, sizeof(f));
+						((RspUserLogout)_RspUserLogout)(&f, repare(pRspInfo), nRequestID, bIsLast);
+					}
+				}
+}
+
+			virtual void onRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+			{
+				if (_RspError)
+				{
+					((RspError)_RspError)(repare(pRspInfo), nRequestID, bIsLast);
+				}
+			}
+virtual void OnFrontConnected () {{if (_FrontConnected) ((FrontConnected)_FrontConnected)();}}
 
 };

@@ -13,7 +13,7 @@ class GenerateStruct:
         fpy.write('#!/usr/bin/env python\n')
         fpy.write('#coding:utf-8\n')
         fpy.write('from ctypes import *\n')
-        fpy.write('from ctp_enum import *\n')
+        fpy.write('from py_ctp.ctp_enum import *\n')
 
         fpy.write('\n')
         # fpy.write('structDict = {}\n')

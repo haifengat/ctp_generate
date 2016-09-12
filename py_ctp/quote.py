@@ -23,34 +23,27 @@ class Quote:
 
 		self.api = None
 		self.spi = None
-		self.h.RegisterNameServer.argtypes = [c_void_p , c_char_p]
-		self.h.RegisterNameServer.restype = c_void_p
-		self.h.UnSubscribeForQuoteRsp.argtypes = [c_void_p , c_char_p , c_int32]
-		self.h.UnSubscribeForQuoteRsp.restype = c_void_p
-		self.h.ReqUserLogout.argtypes = [c_void_p , c_void_p , c_int32]
-		self.h.ReqUserLogout.restype = c_void_p
-		self.h.Init.argtypes = [c_void_p]
-		self.h.Init.restype = c_void_p
-		self.h.GetTradingDay.argtypes = [c_void_p]
-		self.h.GetTradingDay.restype = c_void_p
-		self.h.RegisterSpi.argtypes = [c_void_p , c_void_p]
-		self.h.RegisterSpi.restype = c_void_p
-		self.h.SubscribeMarketData.argtypes = [c_void_p , c_char_p , c_int32]
-		self.h.SubscribeMarketData.restype = c_void_p
-		self.h.Release.argtypes = [c_void_p]
-		self.h.Release.restype = c_void_p
+		self.nRequestID = 0
 		self.h.Join.argtypes = [c_void_p]
 		self.h.Join.restype = c_void_p
-		self.h.RegisterFensUserInfo.argtypes = [c_void_p , c_void_p]
-		self.h.RegisterFensUserInfo.restype = c_void_p
 		self.h.RegisterFront.argtypes = [c_void_p , c_char_p]
 		self.h.RegisterFront.restype = c_void_p
+		self.h.Release.argtypes = [c_void_p]
+		self.h.Release.restype = c_void_p
+		self.h.Init.argtypes = [c_void_p]
+		self.h.Init.restype = c_void_p
+		self.h.RegisterFensUserInfo.argtypes = [c_void_p , c_void_p]
+		self.h.RegisterFensUserInfo.restype = c_void_p
+		self.h.RegisterSpi.argtypes = [c_void_p , c_void_p]
+		self.h.RegisterSpi.restype = c_void_p
+		self.h.ReqUserLogout.argtypes = [c_void_p , c_void_p , c_int32]
+		self.h.ReqUserLogout.restype = c_void_p
 		self.h.ReqUserLogin.argtypes = [c_void_p , c_void_p , c_int32]
 		self.h.ReqUserLogin.restype = c_void_p
-		self.h.UnSubscribeMarketData.argtypes = [c_void_p , c_char_p , c_int32]
-		self.h.UnSubscribeMarketData.restype = c_void_p
-		self.h.SubscribeForQuoteRsp.argtypes = [c_void_p , c_char_p , c_int32]
-		self.h.SubscribeForQuoteRsp.restype = c_void_p
+		self.h.RegisterNameServer.argtypes = [c_void_p , c_char_p]
+		self.h.RegisterNameServer.restype = c_void_p
+		self.h.GetTradingDay.argtypes = [c_void_p]
+		self.h.GetTradingDay.restype = c_void_p
 
 		# restore work directory
 		os.chdir(cur_path)
@@ -59,30 +52,10 @@ class Quote:
 	def RegCB(self):
 		"""在createapi, createspi后调用"""
 
-		self.h.SetOnRspSubMarketData.argtypes = [c_void_p, c_void_p]
-		self.h.SetOnRspSubMarketData.restype = c_void_p
-		self.evOnRspSubMarketData = CFUNCTYPE(c_void_p, POINTER(CThostFtdcSpecificInstrumentField), POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspSubMarketData)
-		self.h.SetOnRspSubMarketData(self.spi, self.evOnRspSubMarketData)
-
 		self.h.SetOnRspSubForQuoteRsp.argtypes = [c_void_p, c_void_p]
 		self.h.SetOnRspSubForQuoteRsp.restype = c_void_p
 		self.evOnRspSubForQuoteRsp = CFUNCTYPE(c_void_p, POINTER(CThostFtdcSpecificInstrumentField), POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspSubForQuoteRsp)
 		self.h.SetOnRspSubForQuoteRsp(self.spi, self.evOnRspSubForQuoteRsp)
-
-		self.h.SetOnFrontDisconnected.argtypes = [c_void_p, c_void_p]
-		self.h.SetOnFrontDisconnected.restype = c_void_p
-		self.evOnFrontDisconnected = CFUNCTYPE(c_void_p, c_int32)(self.__OnFrontDisconnected)
-		self.h.SetOnFrontDisconnected(self.spi, self.evOnFrontDisconnected)
-
-		self.h.SetOnRspUnSubMarketData.argtypes = [c_void_p, c_void_p]
-		self.h.SetOnRspUnSubMarketData.restype = c_void_p
-		self.evOnRspUnSubMarketData = CFUNCTYPE(c_void_p, POINTER(CThostFtdcSpecificInstrumentField), POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspUnSubMarketData)
-		self.h.SetOnRspUnSubMarketData(self.spi, self.evOnRspUnSubMarketData)
-
-		self.h.SetOnRspUserLogout.argtypes = [c_void_p, c_void_p]
-		self.h.SetOnRspUserLogout.restype = c_void_p
-		self.evOnRspUserLogout = CFUNCTYPE(c_void_p, POINTER(CThostFtdcUserLogoutField), POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspUserLogout)
-		self.h.SetOnRspUserLogout(self.spi, self.evOnRspUserLogout)
 
 		self.h.SetOnRtnForQuoteRsp.argtypes = [c_void_p, c_void_p]
 		self.h.SetOnRtnForQuoteRsp.restype = c_void_p
@@ -94,6 +67,41 @@ class Quote:
 		self.evOnHeartBeatWarning = CFUNCTYPE(c_void_p, c_int32)(self.__OnHeartBeatWarning)
 		self.h.SetOnHeartBeatWarning(self.spi, self.evOnHeartBeatWarning)
 
+		self.h.SetOnRspSubMarketData.argtypes = [c_void_p, c_void_p]
+		self.h.SetOnRspSubMarketData.restype = c_void_p
+		self.evOnRspSubMarketData = CFUNCTYPE(c_void_p, POINTER(CThostFtdcSpecificInstrumentField), POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspSubMarketData)
+		self.h.SetOnRspSubMarketData(self.spi, self.evOnRspSubMarketData)
+
+		self.h.SetOnRspUserLogin.argtypes = [c_void_p, c_void_p]
+		self.h.SetOnRspUserLogin.restype = c_void_p
+		self.evOnRspUserLogin = CFUNCTYPE(c_void_p, POINTER(CThostFtdcRspUserLoginField), POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspUserLogin)
+		self.h.SetOnRspUserLogin(self.spi, self.evOnRspUserLogin)
+
+		self.h.SetOnRtnDepthMarketData.argtypes = [c_void_p, c_void_p]
+		self.h.SetOnRtnDepthMarketData.restype = c_void_p
+		self.evOnRtnDepthMarketData = CFUNCTYPE(c_void_p, POINTER(CThostFtdcDepthMarketDataField))(self.__OnRtnDepthMarketData)
+		self.h.SetOnRtnDepthMarketData(self.spi, self.evOnRtnDepthMarketData)
+
+		self.h.SetOnRspUnSubForQuoteRsp.argtypes = [c_void_p, c_void_p]
+		self.h.SetOnRspUnSubForQuoteRsp.restype = c_void_p
+		self.evOnRspUnSubForQuoteRsp = CFUNCTYPE(c_void_p, POINTER(CThostFtdcSpecificInstrumentField), POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspUnSubForQuoteRsp)
+		self.h.SetOnRspUnSubForQuoteRsp(self.spi, self.evOnRspUnSubForQuoteRsp)
+
+		self.h.SetOnRspUnSubMarketData.argtypes = [c_void_p, c_void_p]
+		self.h.SetOnRspUnSubMarketData.restype = c_void_p
+		self.evOnRspUnSubMarketData = CFUNCTYPE(c_void_p, POINTER(CThostFtdcSpecificInstrumentField), POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspUnSubMarketData)
+		self.h.SetOnRspUnSubMarketData(self.spi, self.evOnRspUnSubMarketData)
+
+		self.h.SetOnFrontDisconnected.argtypes = [c_void_p, c_void_p]
+		self.h.SetOnFrontDisconnected.restype = c_void_p
+		self.evOnFrontDisconnected = CFUNCTYPE(c_void_p, c_int32)(self.__OnFrontDisconnected)
+		self.h.SetOnFrontDisconnected(self.spi, self.evOnFrontDisconnected)
+
+		self.h.SetOnRspUserLogout.argtypes = [c_void_p, c_void_p]
+		self.h.SetOnRspUserLogout.restype = c_void_p
+		self.evOnRspUserLogout = CFUNCTYPE(c_void_p, POINTER(CThostFtdcUserLogoutField), POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspUserLogout)
+		self.h.SetOnRspUserLogout(self.spi, self.evOnRspUserLogout)
+
 		self.h.SetOnRspError.argtypes = [c_void_p, c_void_p]
 		self.h.SetOnRspError.restype = c_void_p
 		self.evOnRspError = CFUNCTYPE(c_void_p, POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspError)
@@ -104,104 +112,77 @@ class Quote:
 		self.evOnFrontConnected = CFUNCTYPE(c_void_p)(self.__OnFrontConnected)
 		self.h.SetOnFrontConnected(self.spi, self.evOnFrontConnected)
 
-		self.h.SetOnRtnDepthMarketData.argtypes = [c_void_p, c_void_p]
-		self.h.SetOnRtnDepthMarketData.restype = c_void_p
-		self.evOnRtnDepthMarketData = CFUNCTYPE(c_void_p, POINTER(CThostFtdcDepthMarketDataField))(self.__OnRtnDepthMarketData)
-		self.h.SetOnRtnDepthMarketData(self.spi, self.evOnRtnDepthMarketData)
-
-		self.h.SetOnRspUserLogin.argtypes = [c_void_p, c_void_p]
-		self.h.SetOnRspUserLogin.restype = c_void_p
-		self.evOnRspUserLogin = CFUNCTYPE(c_void_p, POINTER(CThostFtdcRspUserLoginField), POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspUserLogin)
-		self.h.SetOnRspUserLogin(self.spi, self.evOnRspUserLogin)
-
-		self.h.SetOnRspUnSubForQuoteRsp.argtypes = [c_void_p, c_void_p]
-		self.h.SetOnRspUnSubForQuoteRsp.restype = c_void_p
-		self.evOnRspUnSubForQuoteRsp = CFUNCTYPE(c_void_p, POINTER(CThostFtdcSpecificInstrumentField), POINTER(CThostFtdcRspInfoField), c_int32, c_bool)(self.__OnRspUnSubForQuoteRsp)
-		self.h.SetOnRspUnSubForQuoteRsp(self.spi, self.evOnRspUnSubForQuoteRsp)
-
-	def __OnRspSubMarketData(self, pSpecificInstrument, pRspInfo, nRequestID, bIsLast):
-			print('OnRspSubMarketData:pSpecificInstrument, pRspInfo, nRequestID, bIsLast')
-			self.OnRspSubMarketData(POINTER(CThostFtdcSpecificInstrumentField).from_param(pSpecificInstrument).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
-	
 	def __OnRspSubForQuoteRsp(self, pSpecificInstrument, pRspInfo, nRequestID, bIsLast):
-			print('OnRspSubForQuoteRsp:pSpecificInstrument, pRspInfo, nRequestID, bIsLast')
-			self.OnRspSubForQuoteRsp(POINTER(CThostFtdcSpecificInstrumentField).from_param(pSpecificInstrument).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
-	
-	def __OnFrontDisconnected(self, nReason):
-			print('OnFrontDisconnected:nReason')
-			self.OnFrontDisconnected(nReason)
-	
-	def __OnRspUnSubMarketData(self, pSpecificInstrument, pRspInfo, nRequestID, bIsLast):
-			print('OnRspUnSubMarketData:pSpecificInstrument, pRspInfo, nRequestID, bIsLast')
-			self.OnRspUnSubMarketData(POINTER(CThostFtdcSpecificInstrumentField).from_param(pSpecificInstrument).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
-	
-	def __OnRspUserLogout(self, pUserLogout, pRspInfo, nRequestID, bIsLast):
-			print('OnRspUserLogout:pUserLogout, pRspInfo, nRequestID, bIsLast')
-			self.OnRspUserLogout(POINTER(CThostFtdcUserLogoutField).from_param(pUserLogout).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
+		self.OnRspSubForQuoteRsp(POINTER(CThostFtdcSpecificInstrumentField).from_param(pSpecificInstrument).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
 	
 	def __OnRtnForQuoteRsp(self, pForQuoteRsp):
-			print('OnRtnForQuoteRsp:pForQuoteRsp')
-			self.OnRtnForQuoteRsp(POINTER(CThostFtdcForQuoteRspField).from_param(pForQuoteRsp).contents)
+		self.OnRtnForQuoteRsp(POINTER(CThostFtdcForQuoteRspField).from_param(pForQuoteRsp).contents)
 	
 	def __OnHeartBeatWarning(self, nTimeLapse):
-			print('OnHeartBeatWarning:nTimeLapse')
-			self.OnHeartBeatWarning(nTimeLapse)
+		self.OnHeartBeatWarning(nTimeLapse)
 	
-	def __OnRspError(self, pRspInfo, nRequestID, bIsLast):
-			print('OnRspError:pRspInfo, nRequestID, bIsLast')
-			self.OnRspError(POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
-	
-	def __OnFrontConnected(self, ):
-			print('OnFrontConnected:')
-			self.OnFrontConnected()
-	
-	def __OnRtnDepthMarketData(self, pDepthMarketData):
-			print('OnRtnDepthMarketData:pDepthMarketData')
-			self.OnRtnDepthMarketData(POINTER(CThostFtdcDepthMarketDataField).from_param(pDepthMarketData).contents)
+	def __OnRspSubMarketData(self, pSpecificInstrument, pRspInfo, nRequestID, bIsLast):
+		self.OnRspSubMarketData(POINTER(CThostFtdcSpecificInstrumentField).from_param(pSpecificInstrument).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
 	
 	def __OnRspUserLogin(self, pRspUserLogin, pRspInfo, nRequestID, bIsLast):
-			print('OnRspUserLogin:pRspUserLogin, pRspInfo, nRequestID, bIsLast')
-			self.OnRspUserLogin(POINTER(CThostFtdcRspUserLoginField).from_param(pRspUserLogin).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
+		self.OnRspUserLogin(POINTER(CThostFtdcRspUserLoginField).from_param(pRspUserLogin).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
+	
+	def __OnRtnDepthMarketData(self, pDepthMarketData):
+		self.OnRtnDepthMarketData(POINTER(CThostFtdcDepthMarketDataField).from_param(pDepthMarketData).contents)
 	
 	def __OnRspUnSubForQuoteRsp(self, pSpecificInstrument, pRspInfo, nRequestID, bIsLast):
-			print('OnRspUnSubForQuoteRsp:pSpecificInstrument, pRspInfo, nRequestID, bIsLast')
-			self.OnRspUnSubForQuoteRsp(POINTER(CThostFtdcSpecificInstrumentField).from_param(pSpecificInstrument).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
+		self.OnRspUnSubForQuoteRsp(POINTER(CThostFtdcSpecificInstrumentField).from_param(pSpecificInstrument).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
 	
-	def OnRspSubMarketData(self, pSpecificInstrument, pRspInfo, nRequestID, bIsLast):
-			print('OnRspSubMarketData:pSpecificInstrument, pRspInfo, nRequestID, bIsLast')
+	def __OnRspUnSubMarketData(self, pSpecificInstrument, pRspInfo, nRequestID, bIsLast):
+		self.OnRspUnSubMarketData(POINTER(CThostFtdcSpecificInstrumentField).from_param(pSpecificInstrument).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
 	
-	def OnRspSubForQuoteRsp(self, pSpecificInstrument, pRspInfo, nRequestID, bIsLast):
-			print('OnRspSubForQuoteRsp:pSpecificInstrument, pRspInfo, nRequestID, bIsLast')
+	def __OnFrontDisconnected(self, nReason):
+		self.OnFrontDisconnected(nReason)
 	
-	def OnFrontDisconnected(self, nReason):
-			print('OnFrontDisconnected:nReason')
+	def __OnRspUserLogout(self, pUserLogout, pRspInfo, nRequestID, bIsLast):
+		self.OnRspUserLogout(POINTER(CThostFtdcUserLogoutField).from_param(pUserLogout).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
 	
-	def OnRspUnSubMarketData(self, pSpecificInstrument, pRspInfo, nRequestID, bIsLast):
-			print('OnRspUnSubMarketData:pSpecificInstrument, pRspInfo, nRequestID, bIsLast')
+	def __OnRspError(self, pRspInfo, nRequestID, bIsLast):
+		self.OnRspError(POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
 	
-	def OnRspUserLogout(self, pUserLogout, pRspInfo, nRequestID, bIsLast):
-			print('OnRspUserLogout:pUserLogout, pRspInfo, nRequestID, bIsLast')
+	def __OnFrontConnected(self):
+		self.OnFrontConnected()
 	
-	def OnRtnForQuoteRsp(self, pForQuoteRsp):
-			print('OnRtnForQuoteRsp:pForQuoteRsp')
+	def OnRspSubForQuoteRsp(self, pSpecificInstrument = CThostFtdcSpecificInstrumentField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool):
+			print('OnRspSubForQuoteRsp:, pSpecificInstrument = CThostFtdcSpecificInstrumentField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool')
 	
-	def OnHeartBeatWarning(self, nTimeLapse):
-			print('OnHeartBeatWarning:nTimeLapse')
+	def OnRtnForQuoteRsp(self, pForQuoteRsp = CThostFtdcForQuoteRspField):
+			print('OnRtnForQuoteRsp:, pForQuoteRsp = CThostFtdcForQuoteRspField')
 	
-	def OnRspError(self, pRspInfo, nRequestID, bIsLast):
-			print('OnRspError:pRspInfo, nRequestID, bIsLast')
+	def OnHeartBeatWarning(self, nTimeLapse = int):
+			print('OnHeartBeatWarning:, nTimeLapse = int')
 	
-	def OnFrontConnected(self, ):
+	def OnRspSubMarketData(self, pSpecificInstrument = CThostFtdcSpecificInstrumentField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool):
+			print('OnRspSubMarketData:, pSpecificInstrument = CThostFtdcSpecificInstrumentField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool')
+	
+	def OnRspUserLogin(self, pRspUserLogin = CThostFtdcRspUserLoginField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool):
+			print('OnRspUserLogin:, pRspUserLogin = CThostFtdcRspUserLoginField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool')
+	
+	def OnRtnDepthMarketData(self, pDepthMarketData = CThostFtdcDepthMarketDataField):
+			print('OnRtnDepthMarketData:, pDepthMarketData = CThostFtdcDepthMarketDataField')
+	
+	def OnRspUnSubForQuoteRsp(self, pSpecificInstrument = CThostFtdcSpecificInstrumentField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool):
+			print('OnRspUnSubForQuoteRsp:, pSpecificInstrument = CThostFtdcSpecificInstrumentField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool')
+	
+	def OnRspUnSubMarketData(self, pSpecificInstrument = CThostFtdcSpecificInstrumentField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool):
+			print('OnRspUnSubMarketData:, pSpecificInstrument = CThostFtdcSpecificInstrumentField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool')
+	
+	def OnFrontDisconnected(self, nReason = int):
+			print('OnFrontDisconnected:, nReason = int')
+	
+	def OnRspUserLogout(self, pUserLogout = CThostFtdcUserLogoutField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool):
+			print('OnRspUserLogout:, pUserLogout = CThostFtdcUserLogoutField, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool')
+	
+	def OnRspError(self, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool):
+			print('OnRspError:, pRspInfo = CThostFtdcRspInfoField, nRequestID = int, bIsLast = bool')
+	
+	def OnFrontConnected(self):
 			print('OnFrontConnected:')
-	
-	def OnRtnDepthMarketData(self, pDepthMarketData):
-			print('OnRtnDepthMarketData:pDepthMarketData')
-	
-	def OnRspUserLogin(self, pRspUserLogin, pRspInfo, nRequestID, bIsLast):
-			print('OnRspUserLogin:pRspUserLogin, pRspInfo, nRequestID, bIsLast')
-	
-	def OnRspUnSubForQuoteRsp(self, pSpecificInstrument, pRspInfo, nRequestID, bIsLast):
-			print('OnRspUnSubForQuoteRsp:pSpecificInstrument, pRspInfo, nRequestID, bIsLast')
 	
 	def CreateApi(self):
 		self.api = self.h.CreateApi()
@@ -211,45 +192,77 @@ class Quote:
 		self.spi = self.h.CreateSpi()
 		return self.spi
 
-	def RegisterNameServer(self, pszNsAddress):
-		self.h.RegisterNameServer(self.api, pszNsAddress)
+	def Join(self):
+		self.h.Join(self.api)
 			
-	def UnSubscribeForQuoteRsp(self, ppInstrumentID, nCount):
-		self.h.UnSubscribeForQuoteRsp(self.api, ppInstrumentID, nCount)
-			
-	def ReqUserLogout(self, pUserLogout, nRequestID):
-		self.h.ReqUserLogout(self.api, pUserLogout, nRequestID)
-			
-	def Init(self):
-		self.h.Init(self.api)
-			
-	def GetTradingDay(self):
-		self.h.GetTradingDay(self.api)
-			
-	def RegisterSpi(self, pSpi):
-		self.h.RegisterSpi(self.api, pSpi)
-			
-	def SubscribeMarketData(self, ppInstrumentID, nCount):
-		self.h.SubscribeMarketData(self.api, ppInstrumentID, nCount)
+	def UnSubscribeForQuoteRsp(self, pInstrumentID):
+		self.h.UnSubscribeForQuoteRsp.argtypes = [c_void_p , c_char_p*1, c_int32]
+		self.h.UnSubscribeForQuoteRsp.restype = c_void_p
+		self.h.UnSubscribeForQuoteRsp(self.api, (c_char_p*1)(bytes(pInstrumentID, encoding = 'ascii')), 1)
+
+	def UnSubscribeMarketData(self, pInstrumentID):
+		self.h.UnSubscribeMarketData.argtypes = [c_void_p , c_char_p*1, c_int32]
+		self.h.UnSubscribeMarketData.restype = c_void_p
+		self.h.UnSubscribeMarketData(self.api, (c_char_p*1)(bytes(pInstrumentID, encoding = 'ascii')), 1)
+
+	def RegisterFront(self, pszFrontAddress):
+		self.h.RegisterFront(self.api, bytes(pszFrontAddress, encoding='ascii'))
 			
 	def Release(self):
 		self.h.Release(self.api)
 			
-	def Join(self):
-		self.h.Join(self.api)
+	def SubscribeMarketData(self, pInstrumentID):
+		self.h.SubscribeMarketData.argtypes = [c_void_p , c_char_p*1, c_int32]
+		self.h.SubscribeMarketData.restype = c_void_p
+		self.h.SubscribeMarketData(self.api, (c_char_p*1)(bytes(pInstrumentID, encoding = 'ascii')), 1)
+
+	def Init(self):
+		self.h.Init(self.api)
 			
-	def RegisterFensUserInfo(self, pFensUserInfo):
-		self.h.RegisterFensUserInfo(self.api, pFensUserInfo)
+	def RegisterFensUserInfo(self, BrokerID = '', UserID = '', LoginMode = ''):
+		struc = CThostFtdcFensUserInfoField()
+		struc.BrokerID = bytes(BrokerID, encoding='ascii')
+		struc.UserID = bytes(UserID, encoding='ascii')
+		struc.LoginMode = bytes(LoginMode, encoding='ascii')
+
+		self.nRequestID += 1
+		self.h.RegisterFensUserInfo(self.api, byref(struc), self.nRequestID)
 			
-	def RegisterFront(self, pszFrontAddress):
-		self.h.RegisterFront(self.api, pszFrontAddress)
+	def RegisterSpi(self, pSpi):
+		self.h.RegisterSpi(self.api, pSpi)
 			
-	def ReqUserLogin(self, pReqUserLoginField, nRequestID):
-		self.h.ReqUserLogin(self.api, pReqUserLoginField, nRequestID)
+	def ReqUserLogout(self, BrokerID = '', UserID = ''):
+		struc = CThostFtdcUserLogoutField()
+		struc.BrokerID = bytes(BrokerID, encoding='ascii')
+		struc.UserID = bytes(UserID, encoding='ascii')
+
+		self.nRequestID += 1
+		self.h.ReqUserLogout(self.api, byref(struc), self.nRequestID)
 			
-	def UnSubscribeMarketData(self, ppInstrumentID, nCount):
-		self.h.UnSubscribeMarketData(self.api, ppInstrumentID, nCount)
+	def ReqUserLogin(self, TradingDay = '', BrokerID = '', UserID = '', Password = '', UserProductInfo = '', InterfaceProductInfo = '', ProtocolInfo = '', MacAddress = '', OneTimePassword = '', ClientIPAddress = '', LoginRemark = ''):
+		struc = CThostFtdcReqUserLoginField()
+		struc.TradingDay = bytes(TradingDay, encoding='ascii')
+		struc.BrokerID = bytes(BrokerID, encoding='ascii')
+		struc.UserID = bytes(UserID, encoding='ascii')
+		struc.Password = bytes(Password, encoding='ascii')
+		struc.UserProductInfo = bytes(UserProductInfo, encoding='ascii')
+		struc.InterfaceProductInfo = bytes(InterfaceProductInfo, encoding='ascii')
+		struc.ProtocolInfo = bytes(ProtocolInfo, encoding='ascii')
+		struc.MacAddress = bytes(MacAddress, encoding='ascii')
+		struc.OneTimePassword = bytes(OneTimePassword, encoding='ascii')
+		struc.ClientIPAddress = bytes(ClientIPAddress, encoding='ascii')
+		struc.LoginRemark = bytes(LoginRemark, encoding='ascii')
+
+		self.nRequestID += 1
+		self.h.ReqUserLogin(self.api, byref(struc), self.nRequestID)
 			
-	def SubscribeForQuoteRsp(self, ppInstrumentID, nCount):
-		self.h.SubscribeForQuoteRsp(self.api, ppInstrumentID, nCount)
+	def RegisterNameServer(self, pszNsAddress):
+		self.h.RegisterNameServer(self.api, bytes(pszNsAddress, encoding='ascii'))
 			
+	def GetTradingDay(self):
+		self.h.GetTradingDay(self.api)
+			
+	def SubscribeForQuoteRsp(self, pInstrumentID):
+		self.h.SubscribeForQuoteRsp.argtypes = [c_void_p , c_char_p*1, c_int32]
+		self.h.SubscribeForQuoteRsp.restype = c_void_p
+		self.h.SubscribeForQuoteRsp(self.api, (c_char_p*1)(bytes(pInstrumentID, encoding = 'ascii')), 1)
