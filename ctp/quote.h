@@ -53,102 +53,102 @@ public:
 	void *_RspError;
 	void *_FrontConnected;
 
-virtual void OnRspSubForQuoteRsp (CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-	if (_RspSubForQuoteRsp)
-				{
-					if (pSpecificInstrument)
-						((RspSubForQuoteRsp)_RspSubForQuoteRsp)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
-					else
-					{
-						CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
-						((RspSubForQuoteRsp)_RspSubForQuoteRsp)(&f, repare(pRspInfo), nRequestID, bIsLast);
-					}
-				}
-}
-virtual void OnRtnForQuoteRsp (CThostFtdcForQuoteRspField *pForQuoteRsp)
-{
-	{if (_RtnForQuoteRsp) ((RtnForQuoteRsp)_RtnForQuoteRsp)(pForQuoteRsp);}
-}
-virtual void OnHeartBeatWarning (int nTimeLapse) {{if (_HeartBeatWarning) ((HeartBeatWarning)_HeartBeatWarning)(nTimeLapse);}}
-virtual void OnRspSubMarketData (CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-	if (_RspSubMarketData)
-				{
-					if (pSpecificInstrument)
-						((RspSubMarketData)_RspSubMarketData)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
-					else
-					{
-						CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
-						((RspSubMarketData)_RspSubMarketData)(&f, repare(pRspInfo), nRequestID, bIsLast);
-					}
-				}
-}
-virtual void OnRspUserLogin (CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-	if (_RspUserLogin)
-				{
-					if (pRspUserLogin)
-						((RspUserLogin)_RspUserLogin)(pRspUserLogin, repare(pRspInfo), nRequestID, bIsLast);
-					else
-					{
-						CThostFtdcRspUserLoginField f; memset(&f, 0, sizeof(f));
-						((RspUserLogin)_RspUserLogin)(&f, repare(pRspInfo), nRequestID, bIsLast);
-					}
-				}
-}
-virtual void OnRtnDepthMarketData (CThostFtdcDepthMarketDataField *pDepthMarketData)
-{
-	{if (_RtnDepthMarketData) ((RtnDepthMarketData)_RtnDepthMarketData)(pDepthMarketData);}
-}
-virtual void OnRspUnSubForQuoteRsp (CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-	if (_RspUnSubForQuoteRsp)
-				{
-					if (pSpecificInstrument)
-						((RspUnSubForQuoteRsp)_RspUnSubForQuoteRsp)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
-					else
-					{
-						CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
-						((RspUnSubForQuoteRsp)_RspUnSubForQuoteRsp)(&f, repare(pRspInfo), nRequestID, bIsLast);
-					}
-				}
-}
-virtual void OnRspUnSubMarketData (CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-	if (_RspUnSubMarketData)
-				{
-					if (pSpecificInstrument)
-						((RspUnSubMarketData)_RspUnSubMarketData)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
-					else
-					{
-						CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
-						((RspUnSubMarketData)_RspUnSubMarketData)(&f, repare(pRspInfo), nRequestID, bIsLast);
-					}
-				}
-}
-virtual void OnFrontDisconnected (int nReason) {{if (_FrontDisconnected) ((FrontDisconnected)_FrontDisconnected)(nReason);}}
-virtual void OnRspUserLogout (CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-	if (_RspUserLogout)
-				{
-					if (pUserLogout)
-						((RspUserLogout)_RspUserLogout)(pUserLogout, repare(pRspInfo), nRequestID, bIsLast);
-					else
-					{
-						CThostFtdcUserLogoutField f; memset(&f, 0, sizeof(f));
-						((RspUserLogout)_RspUserLogout)(&f, repare(pRspInfo), nRequestID, bIsLast);
-					}
-				}
-}
-
-			virtual void onRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+	virtual void OnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+	{
+		if (_RspSubForQuoteRsp)
+		{
+			if (pSpecificInstrument)
+				((RspSubForQuoteRsp)_RspSubForQuoteRsp)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
+			else
 			{
-				if (_RspError)
-				{
-					((RspError)_RspError)(repare(pRspInfo), nRequestID, bIsLast);
-				}
+				CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
+				((RspSubForQuoteRsp)_RspSubForQuoteRsp)(&f, repare(pRspInfo), nRequestID, bIsLast);
 			}
-virtual void OnFrontConnected () {{if (_FrontConnected) ((FrontConnected)_FrontConnected)();}}
+		}
+	}
+	virtual void OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp)
+	{
+		{if (_RtnForQuoteRsp) ((RtnForQuoteRsp)_RtnForQuoteRsp)(pForQuoteRsp); }
+	}
+	virtual void OnHeartBeatWarning(int nTimeLapse) { {if (_HeartBeatWarning) ((HeartBeatWarning)_HeartBeatWarning)(nTimeLapse); } }
+	virtual void OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+	{
+		if (_RspSubMarketData)
+		{
+			if (pSpecificInstrument)
+				((RspSubMarketData)_RspSubMarketData)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
+			else
+			{
+				CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
+				((RspSubMarketData)_RspSubMarketData)(&f, repare(pRspInfo), nRequestID, bIsLast);
+			}
+		}
+	}
+	virtual void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+	{
+		if (_RspUserLogin)
+		{
+			if (pRspUserLogin)
+				((RspUserLogin)_RspUserLogin)(pRspUserLogin, repare(pRspInfo), nRequestID, bIsLast);
+			else
+			{
+				CThostFtdcRspUserLoginField f; memset(&f, 0, sizeof(f));
+				((RspUserLogin)_RspUserLogin)(&f, repare(pRspInfo), nRequestID, bIsLast);
+			}
+		}
+	}
+	virtual void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData)
+	{
+		{if (_RtnDepthMarketData) ((RtnDepthMarketData)_RtnDepthMarketData)(pDepthMarketData); }
+	}
+	virtual void OnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+	{
+		if (_RspUnSubForQuoteRsp)
+		{
+			if (pSpecificInstrument)
+				((RspUnSubForQuoteRsp)_RspUnSubForQuoteRsp)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
+			else
+			{
+				CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
+				((RspUnSubForQuoteRsp)_RspUnSubForQuoteRsp)(&f, repare(pRspInfo), nRequestID, bIsLast);
+			}
+		}
+	}
+	virtual void OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+	{
+		if (_RspUnSubMarketData)
+		{
+			if (pSpecificInstrument)
+				((RspUnSubMarketData)_RspUnSubMarketData)(pSpecificInstrument, repare(pRspInfo), nRequestID, bIsLast);
+			else
+			{
+				CThostFtdcSpecificInstrumentField f; memset(&f, 0, sizeof(f));
+				((RspUnSubMarketData)_RspUnSubMarketData)(&f, repare(pRspInfo), nRequestID, bIsLast);
+			}
+		}
+	}
+	virtual void OnFrontDisconnected(int nReason) { {if (_FrontDisconnected) ((FrontDisconnected)_FrontDisconnected)(nReason); } }
+	virtual void OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+	{
+		if (_RspUserLogout)
+		{
+			if (pUserLogout)
+				((RspUserLogout)_RspUserLogout)(pUserLogout, repare(pRspInfo), nRequestID, bIsLast);
+			else
+			{
+				CThostFtdcUserLogoutField f; memset(&f, 0, sizeof(f));
+				((RspUserLogout)_RspUserLogout)(&f, repare(pRspInfo), nRequestID, bIsLast);
+			}
+		}
+	}
+
+	virtual void onRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+	{
+		if (_RspError)
+		{
+			((RspError)_RspError)(repare(pRspInfo), nRequestID, bIsLast);
+		}
+	}
+	virtual void OnFrontConnected() { {if (_FrontConnected) ((FrontConnected)_FrontConnected)(); } }
 
 };

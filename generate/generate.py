@@ -3,33 +3,42 @@
 """
 __title__ = ''
 __author__ = 'HaiFeng'
-__mtime__ = '2016/9/1'
+__mtime__ = '2016/9/13'
 """
-import os
 
-#from generate.generate_enum import GenerateEnum
+import os
 
 class Generate:
 
-	def __init__(self):
+	def __init__(self, apiName = 'trade'):
 		self.cbNames = []
 		self.cbArgs_dict = {}
 
-		self.fcName_dict = []
+		self.fcNames = []
 		self.fcArgs_dict = {}
 
+		if apiName.upper() == 'TRADE':
+			self.ClassName = 'Trade'
+			self.ApiName = 'CThostFtdcTraderApi'
+			self.SpiName = 'CThostFtdcTraderSpi'
+			self.HFile = 'ThostFtdcTraderApi'
+			self.LibFile = 'thosttraderapi'
+		else:
+			self.ClassName = 'Quote'
+			self.ApiName = 'CThostFtdcMdApi'
+			self.SpiName = 'CThostFtdcMdSpi'
+			self.HFile = 'ThostFtdcMdApi'
+			self.LibFile = 'thostmduserapi'
 
-		self.ApiName = 'CThostFtdcMdApi'
+		self.fcpp = open(os.path.join(os.path.abspath('..\ctp_20160628'), self.HFile + '.h'), 'r')
 
-		self.fcpp = open(os.path.join(os.path.abspath('..\ctp_20160628'), 'ThostFtdcMdApi.h'), 'r')
+		self.fquote_h = open(os.path.join(os.path.abspath('..\ctp_trade'), '{0}.h'.format(apiName)), 'w', encoding='utf-8')
 
-		self.fquote_h = open(os.path.join(os.path.abspath('..\ctp'), 'quote.h'), 'w', encoding='utf-8')
+		self.fquote_p = open(os.path.join(os.path.abspath('..\ctp_trade'), '{0}.cpp'.format(apiName)), 'w', encoding='utf-8')
 
-		self.fquote_p = open(os.path.join(os.path.abspath('..\ctp'), 'quote.cpp'), 'w', encoding='utf-8')
+		self.fquote_d = open(os.path.join(os.path.abspath('..\ctp_trade'), 'define.def'), 'w', encoding='utf-8')
 
-		self.fquote_d = open(os.path.join(os.path.abspath('..\ctp'), 'define.def'), 'w', encoding='utf-8')
-
-		self.fquote_py = open(os.path.join(os.path.abspath('..\py_ctp'), 'quote.py'), 'w', encoding='utf-8')
+		self.fquote_py = open(os.path.join(os.path.abspath('..\py_ctp'), '{0}.py'.format(apiName)), 'w', encoding='utf-8')
 
 
 	def processCallBack(self, line):
@@ -57,7 +66,7 @@ class Generate:
 		content = line.split('(')
 		fcName = content[0].split(' ')[-1].replace('*', '')  # 回调函数名称
 
-		self.fcName_dict.append(fcName)
+		self.fcNames.append(fcName)
 
 		fcArgs = content[1]  # 回调函数参数
 		fcArgs = fcArgs.replace(')', '')
@@ -76,26 +85,26 @@ class Generate:
 #include "stddef.h"
 #include <string.h>
 
-#include "../ctp_20160628/ThostFtdcMdApi.h"
-#pragma comment(lib, "../ctp_20160628/thostmduserapi.lib")
+#include "../ctp_20160628/{0}.h"
+#pragma comment(lib, "../ctp_20160628/{1}.lib")
 
-class Quote : CThostFtdcMdSpi
-{
+class {2}: {3}
+{{
 public:
-	Quote(void);
-	~Quote(void);
+	{4}(void);
+	~{4}(void);
 	//针对收到空反馈的处理
 	CThostFtdcRspInfoField rif;
 	CThostFtdcRspInfoField* repare(CThostFtdcRspInfoField *pRspInfo)
-	{
+	{{
 		if (pRspInfo == NULL)
-		{
+		{{
 			memset(&rif, 0, sizeof(rif));
 			return &rif;
-		}
+		}}
 		else
 			return pRspInfo;
-	}\n""")
+	}}\n""".format(self.HFile, self.LibFile, self.ClassName, self.SpiName, self.ClassName))
 
 		vars = ''
 		typedef = ''
@@ -139,12 +148,16 @@ public:
 
 				on_line = 'virtual void {0} ({1})\n{{\n\t{2}\n}}\n'.format(cbName, cbArgs, cnt)
 			elif 'OnRtn' in cbName:
-				cnt = """{{if (_{0}) (({0})_{0})({1});}}""".format(cb, cbArgsValueList[0])
+				cnt = """if (_{0}) (({0})_{0})({1});""".format(cb, cbArgsValueList[0])
 				on_line = 'virtual void {0} ({1})\n{{\n\t{2}\n}}\n'.format(cbName, cbArgs, cnt)
 			elif 'OnErrRtn' in cbName:
-				on_line = 'virtual void ' + cbName + '(dict data, dict error) {};\n'
+				params = ''
+				for args in cbArgsValueList:
+					params += args if params == '' else (', ' + args)
+				cnt = """if (_{0}) (({0})_{0})({1});""".format(cb, params)
+				on_line = 'virtual void {0} ({1})\n{{\n\t{2}\n}}\n'.format(cbName, cbArgs, cnt)
 			else:
-				cnt = """{{if (_{0}) (({0})_{0})({1});}}""".format(cb, '' if len(cbArgsValueList) == 0 else cbArgsValueList[0])
+				cnt = """if (_{0}) (({0})_{0})({1});""".format(cb, '' if len(cbArgsValueList) == 0 else cbArgsValueList[0])
 				on_line = 'virtual void {0} ({1}) {{{2}}}\n'.format(cbName, cbArgs, cnt)
 
 			if on_line != '':
@@ -173,30 +186,30 @@ public:
 		for cbName in self.cbNames:
 			cb = cbName[2:]
 			# set
-			setf += 'void Set{0}(Quote* spi, void* func){{spi->_{1} = func;}}\n'.format(cbName, cb)
+			setf += 'void Set{0}({2}* spi, void* func){{spi->_{1} = func;}}\n'.format(cbName, cb, self.ClassName)
 			initCb += '\t_{0} = NULL;\n'.format(cb)
 
 		self.fquote_p.write('')
 		self.fquote_p.write("""
 
-#include "Quote.h"
+#include "{1}.h"
 #include <string.h>
 int nReq;
 
-Quote::Quote(void)
+{1}::{1}(void)
 {{
 {0}
 }}
-""".format(initCb))
+""".format(initCb, self.ClassName))
 
 		self.fquote_p.write(setf)
 
 		self.fquote_p.write("""
-void* WINAPI CreateApi(){return CThostFtdcMdApi::CreateFtdcMdApi("./log/");}
+void* WINAPI CreateApi(){{return {0}("./log/");}}
 
-void* WINAPI CreateSpi(){return new Quote();}
+void* WINAPI CreateSpi(){{return new Trade();}}
 
-		""")
+		""".format('CThostFtdcTraderApi::CreateFtdcTraderApi' if self.ClassName == 'Trade' else 'CThostFtdcMdApi::CreateFtdcMdApi'))
 
 
 		for fcName in self.fcArgs_dict:
@@ -228,7 +241,7 @@ void* WINAPI CreateSpi(){return new Quote();}
 		self.fquote_d.write('\tCreateApi\n')
 		self.fquote_d.write('\tCreateSpi\n')
 
-		for fcName in self.fcName_dict:
+		for fcName in self.fcNames:
 			self.fquote_d.write('\t{0}\n'.format(fcName))
 
 		for cb in self.cbNames:
@@ -242,7 +255,7 @@ void* WINAPI CreateSpi(){return new Quote();}
 		struct_init_dict = {}
 		struct = ''
 		m = __import__('py_ctp.ctp_struct')
-		for line in fstruct.readlines():
+		for line in fstruct:
 			if line.find('Structure') >= 0:
 				key = line.split(' ')[1].split('(')[0]
 				c = getattr(getattr(m, 'ctp_struct'), key)
@@ -255,7 +268,7 @@ void* WINAPI CreateSpi(){return new Quote();}
 from py_ctp.ctp_struct import *
 import os
 
-class Quote:
+class {0}:
 
 	def __init__(self):
 
@@ -266,7 +279,7 @@ class Quote:
 		if not os.path.exists("log"):
 			os.mkdir("log")
 
-		self.h = CDLL("ctp_quote.dll")
+		self.h = CDLL("ctp_{0}.dll")
 
 		self.h.CreateApi.argtypes = []
 		self.h.CreateApi.restype = c_void_p
@@ -277,7 +290,7 @@ class Quote:
 		self.api = None
 		self.spi = None
 		self.nRequestID = 0
-""")
+""".format(self.ClassName))
 		funcs = []
 		funcs.append("""
 	def {0}(self{1}):
@@ -472,15 +485,13 @@ class Quote:
 
 if __name__ == '__main__':
 	#构建quote  cb, func
-	g = Generate()
+	g = Generate('quote')
 	g.run()
 
+	#下面的enum 和 struc 只需要运行一次
 	#e = GenerateEnum()
 	#e.main()
 
-	from generate.generate_struct import GenerateStruct
-	s = GenerateStruct()
-	s.main()
-
-	#os.remove('ctp_data_type.py') #,from xxx struct放在此函数内解决::删除后会造成eneratestruct无法运行,因为要import datatype.py
-
+	#from generate.generate_struct import GenerateStruct
+	#s = GenerateStruct()
+	#s.main()

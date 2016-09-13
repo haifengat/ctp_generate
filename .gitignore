@@ -37,3 +37,6 @@ py_ctp/__pycache__*/
 py_ctp/dll/log*/
 py_ctp/log*/
 py_ctp/*.dll
+ctp_trade/ctp_trade.sln
+ctp_trade/ctp_trade.vcxproj
+ctp_trade/ctp_trade.vcxproj.filters
