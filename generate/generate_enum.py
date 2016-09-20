@@ -11,7 +11,7 @@ import os
 type_dict = {'int': 'c_int32', 'char': 'c_char', 'double': 'c_double', 'short': 'c_int32', 'string': 'c_char_p'}
 
 defline = []
-fenum = open(os.path.join(os.path.abspath('..\py_ctp'), 'ctp_enum.py'), 'w', encoding='utf-8')  # 增加utf-8解决乱码问题
+fenum = open(os.path.join(os.path.abspath('..\..\hf_py_ctp\py_ctp'), 'ctp_enum.py'), 'w', encoding='utf-8')  # 增加utf-8解决乱码问题
 enum_comment = {}
 
 

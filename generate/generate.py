@@ -32,13 +32,13 @@ class Generate:
 
 		self.fcpp = open(os.path.join(os.path.abspath('..\ctp_20160628'), self.HFile + '.h'), 'r')
 
-		self.f_head = open(os.path.join(os.path.abspath('..\ctp_{0}'.format(self.ClassName)), '{0}.h'.format(apiName)), 'w', encoding='utf-8')
+		self.f_head = open(os.path.join(os.path.abspath('..\..\hf_py_ctp\ctp_{0}'.format(self.ClassName)), '{0}.h'.format(apiName)), 'w', encoding='utf-8')
 
-		self.f_cpp = open(os.path.join(os.path.abspath('..\ctp_{0}'.format(self.ClassName)), '{0}.cpp'.format(apiName)), 'w', encoding='utf-8')
+		self.f_cpp = open(os.path.join(os.path.abspath('..\..\hf_py_ctp\ctp_{0}'.format(self.ClassName)), '{0}.cpp'.format(apiName)), 'w', encoding='utf-8')
 
-		self.f_def = open(os.path.join(os.path.abspath('..\ctp_{0}'.format(self.ClassName)), 'define.def'), 'w', encoding='utf-8')
+		self.f_def = open(os.path.join(os.path.abspath('..\..\hf_py_ctp\ctp_{0}'.format(self.ClassName)), 'define.def'), 'w', encoding='utf-8')
 
-		self.f_py = open(os.path.join(os.path.abspath('..\py_ctp'), '{0}.py'.format(apiName)), 'w', encoding='utf-8')
+		self.f_py = open(os.path.join(os.path.abspath('..\..\hf_py_ctp\py_ctp'), '{0}.py'.format(apiName)), 'w', encoding='utf-8')
 
 
 	def processCallBack(self, line):
@@ -250,10 +250,12 @@ void* WINAPI CreateSpi(){{return new {0}();}}
 
 	def WritePyQuote(self):
 		#structs and fields
-		fstruct = open('..\py_ctp\ctp_struct.py', 'r', encoding='utf-8')
+		fstruct = open('..\..\hf_py_ctp\py_ctp\ctp_struct.py', 'r', encoding='utf-8')
 		struct_dict = {}
 		struct_init_dict = {}
 		struct = ''
+		import sys
+		sys.path.append('..\..\hf_py_ctp')
 		m = __import__('py_ctp.ctp_struct')
 		for line in fstruct:
 			if line.find('Structure') >= 0:
@@ -273,11 +275,11 @@ class {0}:
 	def __init__(self):
 
 		cur_path = os.getcwd()
-		# change work directory
-		os.chdir(os.path.join(os.getcwd(), "dll"))
 		# make log dir for api log
 		if not os.path.exists("log"):
 			os.mkdir("log")
+		# change work directory
+		os.chdir(os.path.join(os.getcwd(), "dll"))
 
 		self.h = CDLL("ctp_{0}.dll")
 
@@ -485,9 +487,9 @@ class {0}:
 				# ==>
 				# DllExport void* WINAPI
 				self.processFunction(line)
-		#self.WriteH()
-		#self.WriteCpp()
-		#self.WriteDef()  # define.def
+		self.WriteH()
+		self.WriteCpp()
+		self.WriteDef()  # define.def
 		self.WritePyQuote()
 
 if __name__ == '__main__':

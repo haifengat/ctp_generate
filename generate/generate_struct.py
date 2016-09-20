@@ -14,7 +14,7 @@ class GenerateStruct:
 
 		"""主函数"""
 		fcpp = open(os.path.join(os.path.abspath('..\ctp_20160628'), 'ThostFtdcUserApiStruct.h'), 'r')
-		fpy = open(os.path.join(os.path.abspath('..\py_ctp'), 'ctp_struct.py'), 'w', encoding='utf-8')
+		fpy = open(os.path.join(os.path.abspath('..\..\hf_py_ctp\py_ctp'), 'ctp_struct.py'), 'w', encoding='utf-8')
 
 		fpy.write('#!/usr/bin/env python\n')
 		fpy.write('#coding:utf-8\n')
