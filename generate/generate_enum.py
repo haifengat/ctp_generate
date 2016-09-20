@@ -41,8 +41,8 @@ def process_line(line):
 			enum_line += '\t\treturn self.value\n\n'
 			enum_line += '\t#----------------------------------------------------------------------\n'
 			enum_line += '\tdef __char__(self):\n'
-			enum_line += '\t\t"""return c_char value"""\n'
-			enum_line += '\t\treturn c_char(chr(self.value))\n\n'
+			enum_line += '\t\t"""return char value"""\n'
+			enum_line += '\t\treturn chr(self.value)\n\n'
 
 			print(enum_line)
 			fenum.write(enum_line)

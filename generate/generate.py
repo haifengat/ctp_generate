@@ -32,13 +32,13 @@ class Generate:
 
 		self.fcpp = open(os.path.join(os.path.abspath('..\ctp_20160628'), self.HFile + '.h'), 'r')
 
-		self.fquote_h = open(os.path.join(os.path.abspath('..\ctp_trade'), '{0}.h'.format(apiName)), 'w', encoding='utf-8')
+		self.f_head = open(os.path.join(os.path.abspath('..\ctp_{0}'.format(self.ClassName)), '{0}.h'.format(apiName)), 'w', encoding='utf-8')
 
-		self.fquote_p = open(os.path.join(os.path.abspath('..\ctp_trade'), '{0}.cpp'.format(apiName)), 'w', encoding='utf-8')
+		self.f_cpp = open(os.path.join(os.path.abspath('..\ctp_{0}'.format(self.ClassName)), '{0}.cpp'.format(apiName)), 'w', encoding='utf-8')
 
-		self.fquote_d = open(os.path.join(os.path.abspath('..\ctp_trade'), 'define.def'), 'w', encoding='utf-8')
+		self.f_def = open(os.path.join(os.path.abspath('..\ctp_{0}'.format(self.ClassName)), 'define.def'), 'w', encoding='utf-8')
 
-		self.fquote_py = open(os.path.join(os.path.abspath('..\py_ctp'), '{0}.py'.format(apiName)), 'w', encoding='utf-8')
+		self.f_py = open(os.path.join(os.path.abspath('..\py_ctp'), '{0}.py'.format(apiName)), 'w', encoding='utf-8')
 
 
 	def processCallBack(self, line):
@@ -75,8 +75,8 @@ class Generate:
 
 	def WriteH(self):
 
-		self.fquote_h.write('')
-		self.fquote_h.write("""
+		self.f_head.write('')
+		self.f_head.write("""
 #pragma once
 #define DllExport __declspec(dllexport)
 #define WINAPI      __stdcall
@@ -170,13 +170,13 @@ public:
 				# virtual void OnFrontConnected(){ if (_FrontConnected) ((FrontConnected)_FrontConnected)(); }
 				virtual += on_line
 
-		self.fquote_h.write(typedef)
-		self.fquote_h.write('\n')
-		self.fquote_h.write(vars)
-		self.fquote_h.write('\n')
-		self.fquote_h.write(virtual)
-		self.fquote_h.write('\n')
-		self.fquote_h.write('};\n')
+		self.f_head.write(typedef)
+		self.f_head.write('\n')
+		self.f_head.write(vars)
+		self.f_head.write('\n')
+		self.f_head.write(virtual)
+		self.f_head.write('\n')
+		self.f_head.write('};\n')
 
 	def WriteCpp(self):
 
@@ -189,8 +189,8 @@ public:
 			setf += 'void Set{0}({2}* spi, void* func){{spi->_{1} = func;}}\n'.format(cbName, cb, self.ClassName)
 			initCb += '\t_{0} = NULL;\n'.format(cb)
 
-		self.fquote_p.write('')
-		self.fquote_p.write("""
+		self.f_cpp.write('')
+		self.f_cpp.write("""
 
 #include "{1}.h"
 #include <string.h>
@@ -202,14 +202,14 @@ int nReq;
 }}
 """.format(initCb, self.ClassName))
 
-		self.fquote_p.write(setf)
+		self.f_cpp.write(setf)
 
-		self.fquote_p.write("""
-void* WINAPI CreateApi(){{return {0}("./log/");}}
+		self.f_cpp.write("""
+void* WINAPI CreateApi(){{return {1}("./log/");}}
 
-void* WINAPI CreateSpi(){{return new Trade();}}
+void* WINAPI CreateSpi(){{return new {0}();}}
 
-		""".format('CThostFtdcTraderApi::CreateFtdcTraderApi' if self.ClassName == 'Trade' else 'CThostFtdcMdApi::CreateFtdcMdApi'))
+		""".format(self.ClassName, 'CThostFtdcTraderApi::CreateFtdcTraderApi' if self.ClassName == 'Trade' else 'CThostFtdcMdApi::CreateFtdcMdApi'))
 
 
 		for fcName in self.fcArgs_dict:
@@ -232,20 +232,20 @@ void* WINAPI CreateSpi(){{return new Trade();}}
 			#if line.find(' int ') >= 0:
 			#	self.Voids += 'void* WINAPI {0}({1} *api {2}){{return (void *)api->{0}({3});}}\n'.format(fcName, self.ApiName, '' if fcArgs == '' else ',' + fcArgs, params)
 			#else:
-			self.fquote_p.write('void* WINAPI {0}({1} *api {2}){{api->{0}({3}); return 0;}}\n'.format(fcName, self.ApiName, '' if fcArgs == '' else ',' + fcArgs, params))
+			self.f_cpp.write('void* WINAPI {0}({1} *api {2}){{api->{0}({3}); return 0;}}\n'.format(fcName, self.ApiName, '' if fcArgs == '' else ',' + fcArgs, params))
 
 
 	def WriteDef(self):
 		# define.def
-		self.fquote_d.write('LIBRARY\nEXPORTS\n')
-		self.fquote_d.write('\tCreateApi\n')
-		self.fquote_d.write('\tCreateSpi\n')
+		self.f_def.write('LIBRARY\nEXPORTS\n')
+		self.f_def.write('\tCreateApi\n')
+		self.f_def.write('\tCreateSpi\n')
 
 		for fcName in self.fcNames:
-			self.fquote_d.write('\t{0}\n'.format(fcName))
+			self.f_def.write('\t{0}\n'.format(fcName))
 
 		for cb in self.cbNames:
-			self.fquote_d.write('\tSet{0}\n'.format(cb))
+			self.f_def.write('\tSet{0}\n'.format(cb))
 
 
 	def WritePyQuote(self):
@@ -263,7 +263,7 @@ void* WINAPI CreateSpi(){{return new Trade();}}
 				struct_dict[key] = o._fields_
 
 
-		self.fquote_py.write(
+		self.f_py.write(
 		"""
 from py_ctp.ctp_struct import *
 import os
@@ -349,13 +349,18 @@ class {0}:
 							struct_init = '\n\t\tstruc = {0}()\n'.format(type)
 							for field in struct_dict[type]:
 								tt = str(field[1]).split('.')[-1].split('\'')[0]
-
+								#对于c_char的参数需要有默认值,以防止调用时不赋值报错
+								#合成structure bytes('9999', encoding='ascii')
 								if tt.find('c_char') >= 0:
-									params += ", {0} = ''".format(field[0])
+									if tt.find('Array') > 0:
+										params += ", {0} = ''".format(field[0])
+										struct_init += "\t\tstruc.{0} = bytes({0}, encoding='ascii')\n".format(field[0])
+									else:#处理enum类型
+										params += ", {0} = ''".format(field[0])
+										struct_init += "\t\tstruc.{0} = list({0}Type)[0].value if {0}=='' else {0}.value\n".format(field[0])
 								else:
 									params += ', {0} = 0'.format(field[0])
-								#合成structure bytes('9999', encoding='ascii')
-								struct_init += '\t\tstruc.{0} = {1}\n'.format(field[0], field[0] if tt.find('c_char') < 0 else "bytes({0}, encoding='ascii')".format(field[0]))
+									struct_init += "\t\tstruc.{0} = {0}\n".format(field[0])
 							#构造struct的语句
 							struct_init_dict[fcName] = struct_init
 							values += ', byref({0})'.format('struc')
@@ -367,7 +372,7 @@ class {0}:
 
 				line = '''\t\tself.h.{0}.argtypes = [c_void_p{1}]
 		self.h.{0}.restype = c_void_p\n'''.format(fcName, types)
-				self.fquote_py.write(line)
+				self.f_py.write(line)
 
 				#处理参数为Structure的情况:加入structu构造,去掉reqid
 				if fcName in struct_init_dict.keys():
@@ -438,10 +443,12 @@ class {0}:
 
 			cbFuncs.append("""
 	def {0}(self{1}):
-			print('{0}:{1}')
-	""".format(cbName, params))
+		print('{0}:{1}')\n""".format(cbName, params))
+			for param in params__.replace(' ','').split(','):
+				if param != '':
+					cbFuncs.append("\t\tprint({0})\n".format(param))
 
-		self.fquote_py.write('''
+		self.f_py.write('''
 		# restore work directory
 		os.chdir(cur_path)
 
@@ -449,27 +456,27 @@ class {0}:
 		############### 以上为__init__函数内容
 
 		# 事件注册函数
-		self.fquote_py.write('''
+		self.f_py.write('''
 	def RegCB(self):
 		"""在createapi, createspi后调用"""
 ''')
 
 		for reg in cbRegs:
-			self.fquote_py.write(reg)
+			self.f_py.write(reg)
 
 		#回调函数
 		for func in cb__Funcs:
-			self.fquote_py.write(func)
+			self.f_py.write(func)
 		for func in cbFuncs:
-			self.fquote_py.write(func)
+			self.f_py.write(func)
 
 		# 主调函数
 		for func in funcs:
-			self.fquote_py.write(func)
+			self.f_py.write(func)
 
 
 	def run(self):
-		for line in self.fcpp:
+		for line in self.fcpp.readlines():
 			if "\tvirtual void On" in line:
 				self.processCallBack(line)
 			# elif "\tvirtual int" in line:
@@ -478,13 +485,15 @@ class {0}:
 				# ==>
 				# DllExport void* WINAPI
 				self.processFunction(line)
-		self.WriteH()
-		self.WriteCpp()
-		self.WriteDef()  # define.def
+		#self.WriteH()
+		#self.WriteCpp()
+		#self.WriteDef()  # define.def
 		self.WritePyQuote()
 
 if __name__ == '__main__':
 	#构建quote  cb, func
+	g = Generate('trade')
+	g.run()
 	g = Generate('quote')
 	g.run()
 
