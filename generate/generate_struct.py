@@ -28,6 +28,8 @@ class GenerateStruct:
 		py_get = ''
 		py_line = ''
 		py_str = ''
+		py_dict = ''
+		py_clone = ''
 		py_str_idx = 0
 		py_str_format = ''
 
@@ -69,6 +71,7 @@ class GenerateStruct:
 					py_get += "\tdef get{0}(self):\n\t\treturn str(self.{0}, 'GB2312')\n".format(variable)
 					py_str_format += "str(self.{0}, 'GB2312'), ".format(variable)
 					py_str += "{0}=\\'{{{1}}}\\', ".format(variable, py_str_idx)
+					py_dict += "'{0}':{1},".format(variable, "str(self.{0}, 'GB2312')".format(variable))
 				elif type_.find('c_char') >= 0:
 					var_type = typedef[typedef.find('Ftdc') + 4:]
 					py_get += "\tdef get{0}(self):\n\t\treturn {1}(ord(self.{0}))\n".format(variable, var_type)
@@ -76,10 +79,13 @@ class GenerateStruct:
 					py_str_format += "'' if ord(self.{0}) == 0 else {1}(ord(self.{0})).name, ".format(variable, var_type)
 					#py_str_format += "self.{0}, ".format(variable)
 					py_str += "{0}={2}.{{{1}}}, ".format(variable, py_str_idx, var_type)
+					py_dict += "'{0}':{1},".format(variable, "'' if ord(self.{0}) == 0 else {1}(ord(self.{0})).name".format(variable, var_type))
 				else:
 					py_get += "\tdef get{0}(self):\n\t\treturn self.{0}\n".format(variable)
 					py_str_format += "self.{0}, ".format(variable)
 					py_str += "{0}={{{1}}}, ".format(variable, py_str_idx)
+					py_dict += "'{0}':{1},".format(variable, "self.{0}".format(variable))
+				py_clone += "\t\tobj.{0}=self.{0}\n".format(variable)
 
 
 				py_str_idx+=1
@@ -92,12 +98,16 @@ class GenerateStruct:
 				py_line += py_get + '\n'
 				#py_line += "\tdef __str__(self):\n\t\treturn '{0}'.format(self=self)\n\n".format(py_str[0:len(py_str)-2])
 				py_line += "\tdef __str__(self):\n\t\treturn '{0}'.format({1})\n\n".format(py_str[0:len(py_str) - 2], py_str_format[0:len(py_str_format) - 2])
+				py_line += "\t@property\n\tdef __dict__(self):\n\t\treturn {{{0}}}\n\n".format(py_dict[:-1])
+				py_line += "\tdef clone(self):\n\t\tobj={0}()\n{1}\t\treturn obj\n\n".format(name, py_clone)
 
 			# 结构体开始
 			elif '{' in line:
 				py_line = ''
 				py_get = ''
 				py_str = ''
+				py_dict = ''
+				py_clone = ''
 				py_str_idx = 0
 				py_str_format = ''
 

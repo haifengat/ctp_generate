@@ -435,7 +435,7 @@ class {0}:
 #self.OnRspSubMarketData(POINTER(CThostFtdcSpecificInstrumentField).from_param(pSpecificInstrument).contents, POINTER(CThostFtdcRspInfoField).from_param(pRspInfo).contents, nRequestID, bIsLast)
 				ref = param
 				if t not in type_dict:
-					ref = 'POINTER({0}).from_param({1}).contents'.format(t, param)
+					ref = 'POINTER({0}).from_param({1}).contents.clone()'.format(t, param)
 				param_trans += ref if param_trans == '' else (', ' + ref)
 
 			line = """
@@ -504,8 +504,8 @@ if __name__ == '__main__':
 	#构建quote  cb, func
 	g = Generate('trade')
 	g.run()
-	g = Generate('quote')
-	g.run()
+	#g = Generate('quote')
+	#g.run()
 
 	#下面的enum 和 struc 只需要运行一次
 	#e = GenerateEnum()
