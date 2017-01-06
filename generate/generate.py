@@ -16,6 +16,7 @@ class Generate:
 
 		self.fcNames = []
 		self.fcArgs_dict = {}
+		self.ctp_dir = '../ctp_20160628'
 
 		if apiName.upper() == 'TRADE':
 			self.ClassName = 'Trade'
@@ -30,7 +31,7 @@ class Generate:
 			self.HFile = 'ThostFtdcMdApi'
 			self.LibFile = 'thostmduserapi'
 
-		self.fcpp = open(os.path.join(os.path.abspath('..\ctp_20160628'), self.HFile + '.h'), 'r')
+		self.fcpp = open(os.path.join(os.path.abspath(self.ctp_dir), self.HFile + '.h'), 'r')
 
 		self.f_head = open(os.path.join(os.path.abspath('..\..\hf_py_ctp\ctp_{0}'.format(self.ClassName)), '{0}.h'.format(apiName)), 'w', encoding='utf-8')
 
@@ -96,11 +97,11 @@ class Generate:
 #define WINAPI      __stdcall
 #define WIN32_LEAN_AND_MEAN             //  从 Windows 头文件中排除极少使用的信息
 #include "stddef.h"
-#include "../ctp_20160628/{0}.h"
-#pragma comment(lib, "../ctp_20160628/{1}.lib")
+#include "{4}/{0}.h"
+#pragma comment(lib, "{4}/{1}.lib")
 #else
 #define WINAPI
-#include "../ctp_20160628_opt_linux64/{0}.h"
+#include "{4}/{0}.h"
 #endif
 
 #include <string.h>
@@ -109,8 +110,8 @@ class Generate:
 class {2}: {3}
 {{
 public:
-	{4}(void);
-	~{4}(void);
+	{2}(void);
+	~{2}(void);
 	//针对收到空反馈的处理
 	CThostFtdcRspInfoField rif;
 	CThostFtdcRspInfoField* repare(CThostFtdcRspInfoField *pRspInfo)
@@ -122,7 +123,7 @@ public:
 		}}
 		else
 			return pRspInfo;
-	}}\n""".format(self.HFile, self.LibFile, self.ClassName, self.SpiName, self.ClassName))
+	}}\n""".format(self.HFile, self.LibFile, self.ClassName, self.SpiName, self.ctp_dir))
 
 		vars = ''
 		typedef = ''
@@ -352,7 +353,7 @@ class {0}:
 					fcArgsValueList.append(content[1].replace(' ', ''))  # 参数数据列表
 
 			#对合约订阅与要的特别处理
-			if fcName.find('Subscribe') == 0 or fcName.find('Subscribe') == 2:
+			if self.ClassName.lower() == 'quote' and (fcName.find('Subscribe') == 0 or fcName.find('Subscribe') == 2):
 				func = '''
 	def {0}(self, pInstrumentID):
 		self.h.{0}.argtypes = [c_void_p , c_char_p*1, c_int32]
@@ -532,10 +533,12 @@ if __name__ == '__main__':
 	g = Generate('quote')
 	g.run()
 
+	#运行generate_struct.py 和 generate_enum.py即可
+
 	#下面的enum 和 struc 只需要运行一次
 	#e = GenerateEnum()
 	#e.main()
 
-	#from generate.generate_struct import GenerateStruct
-	#s = GenerateStruct()
-	#s.main()
+	# from generate_struct import GenerateStruct
+	# s = GenerateStruct()
+	# s.main()
