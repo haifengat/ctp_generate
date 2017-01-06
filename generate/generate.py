@@ -78,15 +78,33 @@ class Generate:
 		self.f_head.write('')
 		self.f_head.write("""
 #pragma once
-#define DllExport __declspec(dllexport)
+#ifdef WIN32
+#ifdef __cplusplus
+#define DLL_EXPORT_C_DECL extern "C" __declspec(dllexport)
+#else
+#define DLL_EXPORT_DECL __declspec(dllexport)
+#endif
+#else
+#ifdef __cplusplus
+#define DLL_EXPORT_C_DECL extern "C"
+#else
+#define DLL_EXPORT_DECL extern
+#endif
+#endif
+
+#ifdef WIN32
 #define WINAPI      __stdcall
 #define WIN32_LEAN_AND_MEAN             //  从 Windows 头文件中排除极少使用的信息
-
 #include "stddef.h"
-#include <string.h>
-
 #include "../ctp_20160628/{0}.h"
 #pragma comment(lib, "../ctp_20160628/{1}.lib")
+#else
+#define WINAPI
+#include "../ctp_20160628_opt_linux64/{0}.h"
+#endif
+
+#include <string.h>
+
 
 class {2}: {3}
 {{
@@ -186,13 +204,13 @@ public:
 		for cbName in self.cbNames:
 			cb = cbName[2:]
 			# set
-			setf += 'void Set{0}({2}* spi, void* func){{spi->_{1} = func;}}\n'.format(cbName, cb, self.ClassName)
+			setf += 'DLL_EXPORT_C_DECL void WINAPI Set{0}({2}* spi, void* func){{spi->_{1} = func;}}\n'.format(cbName, cb, self.ClassName)
 			initCb += '\t_{0} = NULL;\n'.format(cb)
 
 		self.f_cpp.write('')
 		self.f_cpp.write("""
 
-#include "{1}.h"
+#include "{2}.h"
 #include <string.h>
 int nReq;
 
@@ -200,16 +218,16 @@ int nReq;
 {{
 {0}
 }}
-""".format(initCb, self.ClassName))
+""".format(initCb, self.ClassName, self.ClassName.lower()))
 
 		self.f_cpp.write(setf)
 
 		self.f_cpp.write("""
-void* WINAPI CreateApi(){{return {1}("./log/");}}
+DLL_EXPORT_C_DECL void* WINAPI CreateApi(){{return {1}("./log/");}}
 
-void* WINAPI CreateSpi(){{return new {0}();}}
+DLL_EXPORT_C_DECL void* WINAPI CreateSpi(){{return new {0}();}}
 
-		""".format(self.ClassName, 'CThostFtdcTraderApi::CreateFtdcTraderApi' if self.ClassName == 'Trade' else 'CThostFtdcMdApi::CreateFtdcMdApi'))
+""".format(self.ClassName, 'CThostFtdcTraderApi::CreateFtdcTraderApi' if self.ClassName == 'Trade' else 'CThostFtdcMdApi::CreateFtdcMdApi'))
 
 
 		for fcName in self.fcArgs_dict:
@@ -232,7 +250,7 @@ void* WINAPI CreateSpi(){{return new {0}();}}
 			#if line.find(' int ') >= 0:
 			#	self.Voids += 'void* WINAPI {0}({1} *api {2}){{return (void *)api->{0}({3});}}\n'.format(fcName, self.ApiName, '' if fcArgs == '' else ',' + fcArgs, params)
 			#else:
-			self.f_cpp.write('void* WINAPI {0}({1} *api {2}){{api->{0}({3}); return 0;}}\n'.format(fcName, self.ApiName, '' if fcArgs == '' else ',' + fcArgs, params))
+			self.f_cpp.write('DLL_EXPORT_C_DECL void* WINAPI {0}({1} *api {2}){{api->{0}({3}); return 0;}}\n'.format(fcName, self.ApiName, '' if fcArgs == '' else ',' + fcArgs, params))
 
 
 	def WriteDef(self):
@@ -248,7 +266,7 @@ void* WINAPI CreateSpi(){{return new {0}();}}
 			self.f_def.write('\tSet{0}\n'.format(cb))
 
 
-	def WritePyQuote(self):
+	def WritePyCtp_xx(self):
 		#structs and fields
 		fstruct = open('..\..\hf_py_ctp\py_ctp\ctp_struct.py', 'r', encoding='utf-8')
 		struct_dict = {}
@@ -270,6 +288,10 @@ void* WINAPI CreateSpi(){{return new {0}();}}
 from py_ctp.ctp_struct import *
 import os
 import sys
+import platform
+
+def isWindowsSystem():
+	return 'Windows' in platform.system()
 
 class {0}:
 
@@ -280,7 +302,7 @@ class {0}:
 		if not os.path.exists(logdir):
 			os.mkdir(logdir)
 
-		dlldir = os.path.join(sys.path[0], "dll")
+		dlldir = os.path.join(os.path.split(os.path.realpath(__file__))[0], "dll")
 		if not os.path.exists(dlldir):
 			print('缺少DLL借口文件')
 			return
@@ -289,7 +311,10 @@ class {0}:
 		cur_path = os.getcwd()
 		os.chdir(dlldir)
 
-		self.h = CDLL("ctp_{0}.dll")
+		if isWindowsSystem():
+			self.h = CDLL("ctp_{0}.dll")
+		else:
+			self.h = cdll.LoadLibrary("ctp_{1}.so")
 
 		self.h.CreateApi.argtypes = []
 		self.h.CreateApi.restype = c_void_p
@@ -300,7 +325,7 @@ class {0}:
 		self.api = None
 		self.spi = None
 		self.nRequestID = 0
-""".format(self.ClassName))
+""".format(self.ClassName, self.ClassName.lower()))
 		funcs = []
 		funcs.append("""
 	def {0}(self{1}):
@@ -498,14 +523,14 @@ class {0}:
 		self.WriteH()
 		self.WriteCpp()
 		self.WriteDef()  # define.def
-		self.WritePyQuote()
+		self.WritePyCtp_xx()
 
 if __name__ == '__main__':
 	#构建quote  cb, func
 	g = Generate('trade')
 	g.run()
-	#g = Generate('quote')
-	#g.run()
+	g = Generate('quote')
+	g.run()
 
 	#下面的enum 和 struc 只需要运行一次
 	#e = GenerateEnum()
