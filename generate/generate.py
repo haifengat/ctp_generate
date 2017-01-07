@@ -79,7 +79,7 @@ class Generate:
 		self.f_head.write('')
 		self.f_head.write("""
 #pragma once
-#ifdef WIN32
+#ifdef _WINDOWS  //64位系统没有预定义 WIN32
 #ifdef __cplusplus
 #define DLL_EXPORT_C_DECL extern "C" __declspec(dllexport)
 #else
@@ -93,7 +93,7 @@ class Generate:
 #endif
 #endif
 
-#ifdef WIN32
+#ifdef _WINDOWS
 #define WINAPI      __stdcall
 #define WIN32_LEAN_AND_MEAN             //  从 Windows 头文件中排除极少使用的信息
 #include "stddef.h"
