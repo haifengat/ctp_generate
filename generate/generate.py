@@ -128,7 +128,7 @@ public:
 		vars = ''
 		typedef = ''
 		virtual = ''
-		for cbName in self.cbArgs_dict:
+		for cbName in self.cbNames:#使用[]保证多次生成的顺序一致 self.cbArgs_dict:
 			cbArgs = self.cbArgs_dict[cbName]
 			cbArgsList = cbArgs.split(', ')  # 将每个参数转化为列表
 
@@ -146,38 +146,39 @@ public:
 			# 生成.h文件中的on部分
 			if 'OnRspError' in cbName:
 				on_line = """
-			virtual void onRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-			{
-				if (_RspError)
-				{
-					((RspError)_RspError)(repare(pRspInfo), nRequestID, bIsLast);
-				}
-			}\n"""
+	virtual void onRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+	{
+		if (_RspError)
+		{
+			((RspError)_RspError)(repare(pRspInfo), nRequestID, bIsLast);
+		}
+	}\n"""
 			elif 'OnRsp' in cbName:
-				cnt = """if (_{0})
-				{{
-					if ({2})
-						(({0})_{0})({2}, repare(pRspInfo), nRequestID, bIsLast);
-					else
-					{{
-						{1} f; memset(&f, 0, sizeof(f));
-						(({0})_{0})(&f, repare(pRspInfo), nRequestID, bIsLast);
-					}}
-				}}""".format(cb, cbArgsTypeList[0], cbArgsValueList[0])
+				cnt = """
+		if (_{0})
+		{{
+			if ({2})
+				(({0})_{0})({2}, repare(pRspInfo), nRequestID, bIsLast);
+			else
+			{{
+				{1} f; memset(&f, 0, sizeof(f));
+				(({0})_{0})(&f, repare(pRspInfo), nRequestID, bIsLast);
+			}}
+		}}""".format(cb, cbArgsTypeList[0], cbArgsValueList[0])
 
-				on_line = 'virtual void {0} ({1})\n{{\n\t{2}\n}}\n'.format(cbName, cbArgs, cnt)
+				on_line = '\tvirtual void {0} ({1})\n\t{{{2}\n\t}}\n'.format(cbName, cbArgs, cnt)
 			elif 'OnRtn' in cbName:
 				cnt = """if (_{0}) (({0})_{0})({1});""".format(cb, cbArgsValueList[0])
-				on_line = 'virtual void {0} ({1})\n{{\n\t{2}\n}}\n'.format(cbName, cbArgs, cnt)
+				on_line = '\tvirtual void {0} ({1})\n\t{{\n\t\t{2}\n\t}}\n'.format(cbName, cbArgs, cnt)
 			elif 'OnErrRtn' in cbName:
 				params = ''
 				for args in cbArgsValueList:
 					params += args if params == '' else (', ' + args)
 				cnt = """if (_{0}) (({0})_{0})({1});""".format(cb, params)
-				on_line = 'virtual void {0} ({1})\n{{\n\t{2}\n}}\n'.format(cbName, cbArgs, cnt)
+				on_line = '\tvirtual void {0} ({1})\n\t{{\n\t\t{2}\n\t}}\n'.format(cbName, cbArgs, cnt)
 			else:
 				cnt = """if (_{0}) (({0})_{0})({1});""".format(cb, '' if len(cbArgsValueList) == 0 else cbArgsValueList[0])
-				on_line = 'virtual void {0} ({1}) {{{2}}}\n'.format(cbName, cbArgs, cnt)
+				on_line = '\tvirtual void {0} ({1}) {{{2}}}\n'.format(cbName, cbArgs, cnt)
 
 			if on_line != '':
 				# typedef int (WINAPI *RspUserLogin)(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
@@ -231,7 +232,7 @@ DLL_EXPORT_C_DECL void* WINAPI CreateSpi(){{return new {0}();}}
 """.format(self.ClassName, 'CThostFtdcTraderApi::CreateFtdcTraderApi' if self.ClassName == 'Trade' else 'CThostFtdcMdApi::CreateFtdcMdApi'))
 
 
-		for fcName in self.fcArgs_dict:
+		for fcName in self.fcNames:#使用[]保证多次生成的顺序一致 self.fcArgs_dict:
 			fcArgs = self.fcArgs_dict[fcName]
 			fcArgsList = fcArgs.split(', ')  # 将每个参数转化为列表
 
@@ -252,19 +253,6 @@ DLL_EXPORT_C_DECL void* WINAPI CreateSpi(){{return new {0}();}}
 			#	self.Voids += 'void* WINAPI {0}({1} *api {2}){{return (void *)api->{0}({3});}}\n'.format(fcName, self.ApiName, '' if fcArgs == '' else ',' + fcArgs, params)
 			#else:
 			self.f_cpp.write('DLL_EXPORT_C_DECL void* WINAPI {0}({1} *api {2}){{api->{0}({3}); return 0;}}\n'.format(fcName, self.ApiName, '' if fcArgs == '' else ',' + fcArgs, params))
-
-
-	def WriteDef(self):
-		# define.def
-		self.f_def.write('LIBRARY\nEXPORTS\n')
-		self.f_def.write('\tCreateApi\n')
-		self.f_def.write('\tCreateSpi\n')
-
-		for fcName in self.fcNames:
-			self.f_def.write('\t{0}\n'.format(fcName))
-
-		for cb in self.cbNames:
-			self.f_def.write('\tSet{0}\n'.format(cb))
 
 
 	def WritePyCtp_xx(self):
@@ -339,7 +327,7 @@ class {0}:
 
 		type_dict = {'int': 'c_int32', 'char': 'c_char_p', 'double': 'c_double', 'short': 'c_int32', 'string': 'c_char_p', 'bool': 'c_bool'}
 
-		for fcName in self.fcArgs_dict:
+		for fcName in self.fcNames:#使用[]保证多次生成的顺序一致 self.fcArgs_dict:
 			fcArgs = self.fcArgs_dict[fcName]
 			fcArgsList = fcArgs.split(', ')  # 将每个参数转化为列表
 
@@ -429,7 +417,7 @@ class {0}:
 		cb__Funcs = []
 		cbFuncs = []
 		#响应函数
-		for cbName in self.cbArgs_dict:
+		for cbName in self.cbNames:#使用[]保证多次生成的顺序一致 self.cbArgs_dict:
 			cbArgs = self.cbArgs_dict[cbName]
 			cbArgsList = cbArgs.split(', ')  # 将每个参数转化为列表
 
@@ -523,7 +511,6 @@ class {0}:
 				self.processFunction(line)
 		self.WriteH()
 		self.WriteCpp()
-		self.WriteDef()  # define.def
 		self.WritePyCtp_xx()
 
 if __name__ == '__main__':
