@@ -37,8 +37,6 @@ class Generate:
 
 		self.f_cpp = open(os.path.join(os.path.abspath('..\..\hf_py_ctp\ctp_{0}'.format(self.ClassName)), '{0}.cpp'.format(apiName)), 'w', encoding='utf-8')
 
-		self.f_def = open(os.path.join(os.path.abspath('..\..\hf_py_ctp\ctp_{0}'.format(self.ClassName)), 'define.def'), 'w', encoding='utf-8')
-
 		self.f_py = open(os.path.join(os.path.abspath('..\..\hf_py_ctp\py_ctp'), '{0}.py'.format(apiName)), 'w', encoding='utf-8')
 
 

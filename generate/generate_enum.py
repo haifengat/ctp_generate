@@ -6,6 +6,17 @@
   Created: 2016/7/5
 """
 import os
+# /////////////////////////////////////////////////////////////////////////
+# ///TFtdcInvestorRangeType是一个投资者范围类型
+# /////////////////////////////////////////////////////////////////////////
+# ///所有
+# #define THOST_FTDC_IR_All '1'
+# ///投资者组
+# #define THOST_FTDC_IR_Group '2'
+# ///单一投资者
+# #define THOST_FTDC_IR_Single '3'
+#
+# typedef char TThostFtdcInvestorRangeType;
 
 class EnumGenerate():
 	
@@ -21,16 +32,21 @@ class EnumGenerate():
 	def process_line(self, line):
 		"""处理每行"""
 		if '///' in line:  # 注释
-			py_line = self.process_comment(line)
-	
-			# comment for enum
+			py_line = '#' + line[3:]
+
+			# /// TFtdcInvestorRangeType是一个投资者范围类型 ==> """投资者范围类型"""
 			if py_line.find('是一个') > 0:
 				self.enum_comment[py_line[py_line.find('Ftdc') + 4:py_line.find('是一个')]] = '\t"""%s"""\n' % py_line[py_line.find('是一个') + 3:-1]
 	
 		elif 'typedef' in line:  # 类型申明
+			# typedef char TThostFtdcInvestorRangeType; ==> typedefDict["TThostFtdcInvestorRangeType"] = "c_char"
 			py_line = self.process_typedef(line)
-	
-			# enum -> clase xxx(Enum)
+
+			# class InvestorRangeType(Enum):
+			# 	"""投资者范围类型"""
+			# 	All = 49
+			# 	Group = 50
+			# 	Single = 51
 			if line.find(' char ') > 0 and line.find('[') < 0:
 				key = line.split(' ')[2][:-2]
 				key = key[key.find('Ftdc') + 4:]
@@ -52,8 +68,15 @@ class EnumGenerate():
 			self.defline.clear()
 	
 		elif '#define' in line:  # 定义常量
-			py_line = self.process_define(line)
-	
+			# define THOST_FTDC_IR_All '1' ==> defineDict["THOST_FTDC_IR_All"] = '1'
+			content = line.split(' ')
+			constant = content[1]
+			if len(content) > 2:
+				value = content[-1]
+				py_line = 'defineDict["%s"] = %s' % (constant, value)
+			else:
+				py_line = ''
+
 			# enum relate define
 			if py_line: #split 3 ==> 分成4段最后一段,以解决新的h文件中类似Limit_FOK  Market_FOK的情况
 				key = py_line[py_line.find('[') + 2:py_line.find(']') - 1].split('_', 3)[-1]
@@ -61,7 +84,10 @@ class EnumGenerate():
 					key = key[1:] + key[0:1]
 				elif key == 'None':
 					key = 'Zero'
-				value = ord(py_line[py_line.find("'"):py_line.find("'") + 3][1])
+				if len(value) > 4:
+					value = value[1:-2]
+				else:
+					value = ord(value[1])
 				self.defline.append('{0} = {1}'.format(key, value))
 	
 		elif line == '\n':  # 空行
@@ -69,16 +95,6 @@ class EnumGenerate():
 		else:
 			py_line = ''
 	
-		return py_line
-	
-	
-	def process_comment(self, line):
-		"""处理注释"""
-		# if line[3] == '/':
-		#     py_line = ''
-		# else:
-		#     py_line = '#' + line[3:]
-		py_line = '#' + line[3:]
 		return py_line
 	
 	
@@ -102,19 +118,7 @@ class EnumGenerate():
 	
 		return py_line
 	
-	
-	def process_define(self, line):
-		"""处理定义常量"""
-		content = line.split(' ')
-		constant = content[1]
-	
-		if len(content) > 2:
-			value = content[-1]
-			py_line = 'defineDict["%s"] = %s' % (constant, value)
-		else:
-			py_line = ''
-	
-		return py_line
+
 	
 	
 	def run(self):
@@ -135,8 +139,8 @@ class EnumGenerate():
 			self.fenum.write('''
 from ctypes import *
 from enum import Enum\n''')
-	
-			for line in fcpp:
+
+			for no, line in enumerate(fcpp):
 				py_line = self.process_line(line)
 				if py_line:
 					fpy.write(py_line)
