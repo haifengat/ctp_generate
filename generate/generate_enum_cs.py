@@ -20,13 +20,14 @@ import os
 #
 # typedef char TThostFtdcInvestorRangeType;
 
-class EnumGenerate():
-	def __init__(self):
+class Generate():
+	def __init__(self, dir):
+		self.ctp_dir = dir
 		# C++和python类型的映射字典
 		self.type_dict = {'int': 'c_int32', 'char': 'c_char', 'double': 'c_double', 'short': 'c_int32', 'string': 'c_char_p'}
 
 		self.define = []
-		self.fenum = open(os.path.join(os.path.abspath('..\..\hf_cs_proxy\Proxy'), 'ctp_enum.cs'), 'w', encoding='utf-8')  # 增加utf-8解决乱码问题
+		self.fenum = open(os.path.join(os.path.abspath('..\..\hf_ctp_cs_proxy\Proxy'), 'ctp_enum.cs'), 'w', encoding='utf-8')  # 增加utf-8解决乱码问题
 		self.enum_comment = {}
 		self.tmp_comment = ''
 
@@ -133,27 +134,16 @@ public enum THOST_TE_RESUME_TYPE
 	def run(self):
 		"""主函数"""
 	#try:
-		fcpp = open(os.path.join(os.path.abspath('..\ctp_20160628'), 'ThostFtdcUserApiDataType.h'), 'r')
-		fpy = open('ctp_data_type.py', 'w', encoding='utf-8')  # 增加utf-8解决乱码问题
-
-		fpy.write('#!/usr/bin/env python\n')
-		fpy.write('#coding:utf-8\n')
-		fpy.write('\n')
-		fpy.write('defineDict = {}\n')
-		fpy.write('typedefDict = {}\n')
-		fpy.write('\n')
+		fcpp = open(os.path.join(os.path.abspath(self.ctp_dir), 'ThostFtdcUserApiDataType.h'), 'r')
 
 		self.fenum.write('\n')
 
-		self.fcpp = open(os.path.join(os.path.abspath('..\ctp_20160628'), 'ThostFtdcUserApiDataType.h'), 'r')
+		self.fcpp = open(os.path.join(os.path.abspath(self.ctp_dir), 'ThostFtdcUserApiDataType.h'), 'r')
 		for idx, line in enumerate(self.fcpp):
 			py_line = self.process_line(idx, line)
-			if py_line:
-				fpy.write(py_line)
-			# print(py_line)
 
 		self.fcpp.close()
-		fpy.close()
+
 		self.fenum.close()
 
 		print('data_type.py生成过程完成')
@@ -162,6 +152,6 @@ public enum THOST_TE_RESUME_TYPE
 
 
 if __name__ == '__main__':
-	EnumGenerate().run()
+	Generate('../ctp_20160606').run()
 
 

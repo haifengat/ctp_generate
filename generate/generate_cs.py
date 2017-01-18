@@ -10,13 +10,14 @@ import os
 
 class Generate:
 
-	def __init__(self, apiName = 'trade'):
+	def __init__(self, dir, apiName):
+		self.ctp_dir = dir
+
 		self.cbNames = []
 		self.cbArgs_dict = {}
 
 		self.fcNames = []
 		self.fcArgs_dict = {}
-		self.ctp_dir = '../ctp_20160628'
 
 		if apiName.upper() == 'TRADE':
 			self.ClassName = 'Trade'
@@ -32,7 +33,7 @@ class Generate:
 			self.LibFile = 'thostmduserapi'
 
 		self.fcpp = open(os.path.join(os.path.abspath(self.ctp_dir), self.HFile + '.h'), 'r')
-		self.f_py = open(os.path.join(os.path.abspath('..\..\hf_cs_proxy\Proxy'), 'ctp_{0}.cs'.format(apiName)), 'w', encoding='utf-8')
+		self.f_py = open(os.path.join(os.path.abspath('..\..\hf_ctp_cs_proxy\Proxy'), 'ctp_{0}.cs'.format(apiName)), 'w', encoding='utf-8')
 
 	def processCallBack(self, line):
 		orignalLine = line
@@ -70,7 +71,7 @@ class Generate:
 	def WritePyCtp_xx(self):
 		#structs and fields
 		fstruct = open('..\..\hf_py_ctp\py_ctp\ctp_struct.py', 'r', encoding='utf-8').readlines()
-		fenum_cs = open('..\..\hf_cs_proxy\Proxy\ctp_enum.cs', 'r', encoding='utf-8').readlines()
+		fenum_cs = open('..\..\hf_ctp_cs_proxy\Proxy\ctp_enum.cs', 'r', encoding='utf-8').readlines()
 		struct_dict = {} #需要用到python的 ctp_struct.py文件
 		struct_init_dict = {}
 		deles = ''
@@ -400,9 +401,9 @@ namespace HaiFeng
 
 if __name__ == '__main__':
 	#构建quote  cb, func
-	g = Generate('trade')
+	g = Generate('../ctp_20160606', 'trade')
 	g.run()
-	g = Generate('quote')
+	g = Generate('../ctp_20160606', 'quote')
 	g.run()
 
 	#运行generate_struct.py 和 generate_enum.py即可

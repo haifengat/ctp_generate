@@ -37,12 +37,14 @@ import os
 # 	[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4)]
 # 	public string CurrencyID;
 # }
-class GenerateStruct:
-	def main(self):
+class Generate:
+	def __init__(self, dir):
+		self.ctp_dir = dir
 
+	def run(self):
 		"""主函数"""
-		fcpp = open(os.path.join(os.path.abspath('..\ctp_20160628'), 'ThostFtdcUserApiStruct.h'), 'r')
-		fpy = open(os.path.join(os.path.abspath('..\..\hf_cs_proxy\Proxy'), 'ctp_struct.cs'), 'w', encoding='utf-8')
+		fcpp = open(os.path.join(os.path.abspath(self.ctp_dir), 'ThostFtdcUserApiStruct.h'), 'r')
+		fpy = open(os.path.join(os.path.abspath('..\..\hf_ctp_cs_proxy\Proxy'), 'ctp_struct.cs'), 'w', encoding='utf-8')
 
 		fpy.write('\n')
 		fpy.write('using System.Runtime.InteropServices;\n')
@@ -126,4 +128,4 @@ public struct {0}
 
 			fpy.write(py_line)
 if __name__ == '__main__':
-	GenerateStruct().main()
+	Generate('../ctp_20160606').run()

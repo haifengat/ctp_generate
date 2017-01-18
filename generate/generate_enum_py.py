@@ -18,9 +18,10 @@ import os
 #
 # typedef char TThostFtdcInvestorRangeType;
 
-class EnumGenerate():
+class Generate():
 	
-	def __init__(self):
+	def __init__(self, dir):
+		self.ctp_dir = dir
 		# C++和python类型的映射字典
 		self.type_dict = {'int': 'c_int32', 'char': 'c_char', 'double': 'c_double', 'short': 'c_int32', 'string': 'c_char_p'}
 		
@@ -62,8 +63,7 @@ class EnumGenerate():
 				enum_line += '\tdef __char__(self):\n'
 				enum_line += '\t\t"""return char value"""\n'
 				enum_line += '\t\treturn chr(self.value)\n\n'
-	
-				print(enum_line)
+
 				self.fenum.write(enum_line)
 			self.defline.clear()
 	
@@ -124,7 +124,7 @@ class EnumGenerate():
 	def run(self):
 		"""主函数"""
 		try:
-			fcpp = open(os.path.join(os.path.abspath('..\ctp_20160628'), 'ThostFtdcUserApiDataType.h'), 'r')
+			fcpp = open(os.path.join(os.path.abspath(self.ctp_dir), 'ThostFtdcUserApiDataType.h'), 'r')
 			fpy = open('ctp_data_type.py', 'w', encoding='utf-8')  # 增加utf-8解决乱码问题
 	
 			fpy.write('#!/usr/bin/env python\n')
@@ -156,6 +156,6 @@ from enum import Enum\n''')
 	
 
 if __name__ == '__main__':
-	EnumGenerate().run()
+	Generate('../ctp_20160606').run()
 	
 	

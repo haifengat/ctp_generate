@@ -6,14 +6,16 @@ __author__ = 'HaiFeng'
 __mtime__ = '2016/9/17'
 """
 
-from ctp_data_type import *
+from generate.ctp_data_type import *
 import os
 
-class GenerateStruct:
-	def main(self):
+class Generate:
+	def __init__(self, dir):
+		self.ctp_dir = dir
 
+	def run(self):
 		"""主函数"""
-		fcpp = open(os.path.join(os.path.abspath('..\ctp_20160628'), 'ThostFtdcUserApiStruct.h'), 'r')
+		fcpp = open(os.path.join(os.path.abspath(self.ctp_dir), 'ThostFtdcUserApiStruct.h'), 'r')
 		fpy = open(os.path.join(os.path.abspath('..\..\hf_py_ctp\py_ctp'), 'ctp_struct.py'), 'w', encoding='utf-8')
 
 		fpy.write('#!/usr/bin/env python\n')
@@ -118,4 +120,4 @@ class GenerateStruct:
 
 			fpy.write(py_line)
 if __name__ == '__main__':
-	GenerateStruct().main()
+	Generate('../ctp_20160606').run()
